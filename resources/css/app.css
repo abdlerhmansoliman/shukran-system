@@ -2,6 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    html.dark body {
+        background-color: #020617;
+        color: #e2e8f0;
+    }
+
+    html.dark .bg-white,
+    html.dark .bg-white\/90 {
+        background-color: #0f172a !important;
+    }
+
+    html.dark .bg-slate-50,
+    html.dark .bg-slate-100,
+    html.dark .bg-slate-100\/70 {
+        background-color: #0b1220 !important;
+    }
+
+    html.dark .border-slate-200,
+    html.dark .border-slate-200\/80,
+    html.dark .border-slate-100 {
+        border-color: #1e293b !important;
+    }
+
+    html.dark .text-slate-900 {
+        color: #f8fafc !important;
+    }
+
+    html.dark .text-slate-700 {
+        color: #cbd5e1 !important;
+    }
+
+    html.dark .text-slate-600,
+    html.dark .text-slate-500 {
+        color: #94a3b8 !important;
+    }
+
+    html.dark .text-slate-400 {
+        color: #64748b !important;
+    }
+
+    html.dark .shadow-sm,
+    html.dark .shadow-xl {
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45) !important;
+    }
+
+    html.dark .hover\:bg-slate-50:hover,
+    html.dark .hover\:bg-slate-50\/80:hover {
+        background-color: #111827 !important;
+    }
+
+    html.dark .hover\:text-slate-900:hover {
+        color: #f8fafc !important;
+    }
+
+    html.dark .hover\:border-slate-300:hover {
+        border-color: #334155 !important;
+    }
+
+    html.dark .sidebar-link-active {
+        background-color: rgba(79, 70, 229, 0.18) !important;
+        color: #c7d2fe !important;
+    }
+
+    html.dark .sidebar-link-icon {
+        background-color: #111827 !important;
+        color: #94a3b8 !important;
+    }
+
+    html.dark .sidebar-link-active .sidebar-link-icon {
+        background-color: #1e1b4b !important;
+        color: #c7d2fe !important;
+    }
+
+    html.dark .customer-table thead th {
+        background-color: #0b1220 !important;
+        color: #94a3b8 !important;
+    }
+
+    html.dark .customer-table tbody td {
+        color: #cbd5e1 !important;
+    }
+
+    html.dark .dataTables_wrapper .dataTables_paginate .paginate_button,
+    html.dark .dataTables_wrapper .dataTables_filter input,
+    html.dark .dataTables_wrapper .dataTables_length select {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border-color: #1e293b !important;
+    }
+}
+
 @layer components {
     .sidebar-link {
         @apply flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900;

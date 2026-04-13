@@ -19,10 +19,23 @@ class Customer extends Model
         'status',
         'source',
         'notes',
+        'level_id',
+        'category_id',
         'created_by'
     ];
 
-    public function creator(){
+    public function creator()
+    {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function level()
+    {
+        return $this->belongsTo(Level::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 }

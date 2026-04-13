@@ -10,6 +10,16 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
+        <script>
+            (() => {
+                const storedTheme = localStorage.getItem('theme');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const theme = storedTheme ?? (prefersDark ? 'dark' : 'light');
+
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                document.documentElement.dataset.theme = theme;
+            })();
+        </script>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -18,7 +28,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-slate-100 text-slate-900">
+    <body class="font-sans antialiased bg-slate-100 text-slate-900 transition-colors duration-300">
         <div x-data="{ sidebarOpen: false }" class="min-h-screen">
             @include('layouts.navigation')
 
@@ -61,6 +71,22 @@
                                     </a>
                                 @endforeach
                             </div>
+
+                            <button
+                                type="button"
+                                id="theme-toggle"
+                                class="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:bg-slate-50 hover:text-slate-900"
+                                aria-label="Toggle theme"
+                                title="Toggle theme"
+                            >
+                                <svg id="theme-icon-light" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v2.25M12 18.75V21M4.97 4.97l1.59 1.59M17.44 17.44l1.59 1.59M3 12h2.25M18.75 12H21M4.97 19.03l1.59-1.59M17.44 6.56l1.59-1.59" />
+                                    <circle cx="12" cy="12" r="4" stroke-width="1.8" />
+                                </svg>
+                                <svg id="theme-icon-dark" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12.79A9 9 0 1111.21 3c0 .3-.01.6-.04.9A7 7 0 0020.1 12.83c.3-.03.6-.04.9-.04z" />
+                                </svg>
+                            </button>
 
                             <div class="hidden rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-500 sm:block">
                                 {{ now()->format('d M Y') }}
@@ -113,5 +139,42 @@
         </div>
 
         @stack('scripts')
+        <script>
+            (() => {
+                const toggleButton = document.getElementById('theme-toggle');
+                const lightIcon = document.getElementById('theme-icon-light');
+                const darkIcon = document.getElementById('theme-icon-dark');
+
+                const syncThemeUI = () => {
+                    const theme = document.documentElement.dataset.theme || 'light';
+                    const isDark = theme === 'dark';
+
+                    if (lightIcon) {
+                        lightIcon.style.display = isDark ? 'none' : 'block';
+                    }
+
+                    if (darkIcon) {
+                        darkIcon.style.display = isDark ? 'block' : 'none';
+                    }
+
+                    if (toggleButton) {
+                        toggleButton.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+                        toggleButton.setAttribute('title', isDark ? 'Light mode' : 'Dark mode');
+                    }
+                };
+
+                syncThemeUI();
+
+                toggleButton?.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.dataset.theme || 'light';
+                    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+                    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
+                    document.documentElement.dataset.theme = nextTheme;
+                    localStorage.setItem('theme', nextTheme);
+                    syncThemeUI();
+                });
+            })();
+        </script>
     </body>
 </html>

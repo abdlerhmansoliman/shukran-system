@@ -38,7 +38,9 @@ class CustomerDataTable extends DataTable
                             ' . e($initials ?: 'NA') . '
                         </div>
                         <div>
-                            <div class="font-semibold text-slate-900">' . e($name ?: __('Unnamed customer')) . '</div>
+                            <a href="' . e(route('customers.show', $customer->id)) . '" class="font-semibold text-slate-900 transition hover:text-indigo-600 hover:underline">
+                                ' . e($name ?: __('Unnamed customer')) . '
+                            </a>
                             <div class="text-sm text-slate-500">' . e($email) . '</div>
                         </div>
                     </div>

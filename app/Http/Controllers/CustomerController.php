@@ -18,6 +18,8 @@ class CustomerController extends Controller
     }
     public function show(Customer $customer)
     {
+        $customer->load(['level', 'category', 'creator']);
+
         return view('customers.show', compact('customer'));
     }   
 
