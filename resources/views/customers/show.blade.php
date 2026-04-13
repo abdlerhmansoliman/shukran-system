@@ -1,5 +1,5 @@
 @extends('layouts.app')
 
 @section('content')
-<h1>Show Customer</h1>
+<h1>{{ __('Show Customer') }}</h1>
 @endsection

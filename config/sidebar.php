@@ -11,7 +11,7 @@ return [
             'title' => 'Main',
             'items' => [
                 [
-                    'title' => 'Dashboard',
+                    'title' => 'Dashboard Overview',
                     'subtitle' => 'Overview and analytics',
                     'route' => 'dashboard',
                     'active' => ['dashboard'],

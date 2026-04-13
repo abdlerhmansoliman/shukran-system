@@ -30,7 +30,7 @@ class CustomerDataTable extends DataTable
                     ->map(fn (string $part) => Str::upper(Str::substr($part, 0, 1)))
                     ->implode('');
 
-                $email = $customer->email ?: 'No email provided';
+                $email = $customer->email ?: __('No email provided');
 
                 return '
                     <div class="flex items-center gap-3">
@@ -38,7 +38,7 @@ class CustomerDataTable extends DataTable
                             ' . e($initials ?: 'NA') . '
                         </div>
                         <div>
-                            <div class="font-semibold text-slate-900">' . e($name ?: 'Unnamed customer') . '</div>
+                            <div class="font-semibold text-slate-900">' . e($name ?: __('Unnamed customer')) . '</div>
                             <div class="text-sm text-slate-500">' . e($email) . '</div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@ class CustomerDataTable extends DataTable
             })
             ->editColumn('source', function (Customer $customer) {
                 if (! $customer->source) {
-                    return '<span class="text-sm text-slate-400">Not specified</span>';
+                    return '<span class="text-sm text-slate-400">' . e(__('Not specified')) . '</span>';
                 }
 
                 return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">' . e(Str::headline($customer->source)) . '</span>';
@@ -103,14 +103,14 @@ class CustomerDataTable extends DataTable
                 'lengthMenu' => [[10, 25, 50, 100], [10, 25, 50, 100]],
                 'language' => [
                     'search' => '',
-                    'searchPlaceholder' => 'Search customers...',
-                    'lengthMenu' => 'Show _MENU_ customers',
-                    'info' => 'Showing _START_ to _END_ of _TOTAL_ customers',
-                    'infoEmpty' => 'No customers available',
-                    'zeroRecords' => 'No matching customers found',
+                    'searchPlaceholder' => __('Search customers...'),
+                    'lengthMenu' => __('Show _MENU_ customers'),
+                    'info' => __('Showing _START_ to _END_ of _TOTAL_ customers'),
+                    'infoEmpty' => __('No customers available'),
+                    'zeroRecords' => __('No matching customers found'),
                     'paginate' => [
-                        'previous' => 'Previous',
-                        'next' => 'Next',
+                        'previous' => __('Previous'),
+                        'next' => __('Next'),
                     ],
                 ],
                 'dom' => "<'customer-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>" .
@@ -154,17 +154,17 @@ class CustomerDataTable extends DataTable
                 ->addClass('text-slate-400'),
 
             Column::computed('customer')
-                ->title('Customer')
+                ->title(__('Customer'))
                 ->searchable(true)
                 ->orderable(false)
                 ->addClass('min-w-[280px]'),
-            Column::make('phone')->title('Phone')->addClass('whitespace-nowrap'),
-            Column::make('status')->title('Status'),
-            Column::make('source')->title('Source'),
-            Column::make('created_at')->title('Created')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
+            Column::make('phone')->title(__('Phone'))->addClass('whitespace-nowrap'),
+            Column::make('status')->title(__('Status')),
+            Column::make('source')->title(__('Source')),
+            Column::make('created_at')->title(__('Created'))->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
 
             Column::computed('action')
-                ->title('Actions')
+                ->title(__('Actions'))
                 ->searchable(false)
                 ->orderable(false)
                 ->width(160)

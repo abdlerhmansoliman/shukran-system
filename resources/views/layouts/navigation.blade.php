@@ -21,7 +21,7 @@
             </span>
             <span>
                 <span class="block text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ data_get($sidebar, 'brand.eyebrow', 'Shukran') }}</span>
-                <span class="block text-lg font-semibold text-slate-900">{{ data_get($sidebar, 'brand.title', 'Admin Dashboard') }}</span>
+                <span class="block text-lg font-semibold text-slate-900">{{ __(data_get($sidebar, 'brand.title', 'Admin Dashboard')) }}</span>
             </span>
         </a>
 
@@ -39,7 +39,7 @@
     <div class="flex-1 overflow-y-auto px-4 py-6">
         @foreach(data_get($sidebar, 'sections', []) as $section)
             <div class="{{ $loop->first ? 'space-y-1' : 'mt-8 space-y-1' }}">
-                <p class="px-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ $section['title'] }}</p>
+                <p class="px-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __($section['title']) }}</p>
 
                 @foreach($section['items'] as $item)
                     @php
@@ -64,9 +64,9 @@
                             </svg>
                         </span>
                         <span class="min-w-0">
-                            <span class="block truncate">{{ $item['title'] }}</span>
+                            <span class="block truncate">{{ __($item['title']) }}</span>
                             @if(!empty($item['subtitle']))
-                                <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ $item['subtitle'] }}</span>
+                                <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ __($item['subtitle']) }}</span>
                             @endif
                         </span>
                     @if($href)
@@ -81,7 +81,7 @@
 
     <div class="border-t border-slate-200 p-4">
         <div class="rounded-3xl bg-slate-900 px-4 py-5 text-white shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Signed In</p>
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Signed In') }}</p>
             <p class="mt-3 text-base font-semibold">{{ Auth::user()->name }}</p>
             <p class="mt-1 text-sm text-slate-300">{{ Auth::user()->email }}</p>
         </div>

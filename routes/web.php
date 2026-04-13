@@ -2,12 +2,21 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Http\Request;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/locale/{locale}', function (Request $request, string $locale) {
+    abort_unless(array_key_exists($locale, config('locales.supported', [])), 404);
+
+    session(['locale' => $locale]);
+
+    return redirect()->back();
+})->name('locale.switch');
 
 Route::get('/dashboard', function () {
     return view('dashboard');

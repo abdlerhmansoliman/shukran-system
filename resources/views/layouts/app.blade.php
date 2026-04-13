@@ -1,5 +1,9 @@
+@php
+    $currentLocale = app()->getLocale();
+    $currentLocaleConfig = config('locales.supported.' . $currentLocale, config('locales.supported.en'));
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', $currentLocale) }}" dir="{{ data_get($currentLocaleConfig, 'dir', 'ltr') }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,20 +37,31 @@
                             </button>
 
                             <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Admin Panel</p>
+                                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Admin Panel') }}</p>
                                 <div class="mt-1 text-lg font-semibold text-slate-900">
                                     @isset($header)
                                         {{ $header }}
                                     @elseif(View::hasSection('header'))
                                         @yield('header')
                                     @else
-                                        Dashboard
+                                        {{ __('Dashboard') }}
                                     @endisset
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center gap-3">
+                            <div class="flex items-center rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+                                @foreach(config('locales.supported', []) as $locale => $localeConfig)
+                                    <a
+                                        href="{{ route('locale.switch', $locale) }}"
+                                        class="rounded-xl px-3 py-2 text-xs font-semibold transition {{ $currentLocale === $locale ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900' }}"
+                                    >
+                                        {{ $localeConfig['label'] }}
+                                    </a>
+                                @endforeach
+                            </div>
+
                             <div class="hidden rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-500 sm:block">
                                 {{ now()->format('d M Y') }}
                             </div>
