@@ -20,6 +20,8 @@ return new class extends Migration
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->string('source')->nullable();
             $table->string('notes')->nullable();
+            $table->foreignId('level_id')->nullable()->constrained('levels')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->string('created_by')->nullable()->constrained('users')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();
