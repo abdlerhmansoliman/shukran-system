@@ -4,12 +4,10 @@ namespace App\DataTables;
 
 use App\Models\Customer;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Str;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Yajra\DataTables\Html\Editor\Editor;
-use Yajra\DataTables\Html\Editor\Fields;
 use Yajra\DataTables\Services\DataTable;
 
 class CustomerDataTable extends DataTable
@@ -23,14 +21,59 @@ class CustomerDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addIndexColumn()
+            ->addColumn('customer', function (Customer $customer) {
+                $name = trim($customer->first_name . ' ' . $customer->last_name);
+                $initials = Str::of($name)
+                    ->explode(' ')
+                    ->filter()
+                    ->take(2)
+                    ->map(fn (string $part) => Str::upper(Str::substr($part, 0, 1)))
+                    ->implode('');
+
+                $email = $customer->email ?: 'No email provided';
+
+                return '
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold tracking-wide text-white">
+                            ' . e($initials ?: 'NA') . '
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900">' . e($name ?: 'Unnamed customer') . '</div>
+                            <div class="text-sm text-slate-500">' . e($email) . '</div>
+                        </div>
+                    </div>
+                ';
+            })
+            ->editColumn('phone', function (Customer $customer) {
+                return '<span class="font-medium text-slate-700">' . e($customer->phone) . '</span>';
+            })
             ->editColumn('status', function (Customer $customer) {
-                if ($customer->status === 'active') {
-                    return '<span class="badge bg-success">Active</span>';
+                $classes = $customer->status === 'active'
+                    ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
+                    : 'bg-slate-100 text-slate-600 ring-slate-500/20';
+
+                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ' . $classes . '">' . e(Str::headline($customer->status)) . '</span>';
+            })
+            ->editColumn('source', function (Customer $customer) {
+                if (! $customer->source) {
+                    return '<span class="text-sm text-slate-400">Not specified</span>';
                 }
 
-                return '<span class="badge bg-secondary">Inactive</span>';
+                return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">' . e(Str::headline($customer->source)) . '</span>';
             })
-            ->addColumn('action', 'customer.action')
+            ->addColumn('action', function (Customer $customer) {
+                return view('components.datatable-actions', compact('customer'))->render();
+            })
+            ->filterColumn('customer', function (QueryBuilder $query, string $keyword) {
+                $query->where(function (QueryBuilder $builder) use ($keyword) {
+                    $builder
+                        ->where('first_name', 'like', "%{$keyword}%")
+                        ->orWhere('last_name', 'like', "%{$keyword}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"])
+                        ->orWhere('email', 'like', "%{$keyword}%");
+                });
+            })
+            ->rawColumns(['customer', 'phone', 'status', 'source', 'action'])
             ->setRowId('id');
     }
 
@@ -41,7 +84,7 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->newQuery();
+        return $model->newQuery()->select('customers.*');
     }
 
     /**
@@ -53,16 +96,48 @@ class CustomerDataTable extends DataTable
             ->setTableId('customer-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->orderBy(1)
-            ->selectStyleSingle()
-            ->buttons([
-                Button::make('excel'),
-                Button::make('csv'),
-                Button::make('pdf'),
-                Button::make('print'),
-                Button::make('reset'),
-                Button::make('reload')
-            ]);
+            ->parameters([
+                'responsive' => true,
+                'autoWidth' => false,
+                'pageLength' => 10,
+                'lengthMenu' => [[10, 25, 50, 100], [10, 25, 50, 100]],
+                'language' => [
+                    'search' => '',
+                    'searchPlaceholder' => 'Search customers...',
+                    'lengthMenu' => 'Show _MENU_ customers',
+                    'info' => 'Showing _START_ to _END_ of _TOTAL_ customers',
+                    'infoEmpty' => 'No customers available',
+                    'zeroRecords' => 'No matching customers found',
+                    'paginate' => [
+                        'previous' => 'Previous',
+                        'next' => 'Next',
+                    ],
+                ],
+                'dom' => "<'customer-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>" .
+                    "<'overflow-x-auto'tr>" .
+                    "<'flex flex-col gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between'<'text-sm text-slate-500'i><'pagination-wrap'p>>",
+                'drawCallback' => 'function() {
+                    const wrapper = this.api().table().container();
+                    wrapper.querySelectorAll("thead th").forEach((th) => {
+                        th.classList.add("bg-slate-50", "text-xs", "font-semibold", "uppercase", "tracking-[0.16em]", "text-slate-500");
+                    });
+                }',
+                'initComplete' => 'function() {
+                    const wrapper = this.api().table().container();
+                    const filterInput = wrapper.querySelector(".dataTables_filter input");
+                    const lengthSelect = wrapper.querySelector(".dataTables_length select");
+
+                    if (filterInput) {
+                        filterInput.className = "w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
+                    }
+
+                    if (lengthSelect) {
+                        lengthSelect.className = "rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10";
+                    }
+                }',
+            ])
+            ->orderBy(5, 'desc')
+            ->selectStyleSingle();
     }
 
     /**
@@ -74,18 +149,26 @@ class CustomerDataTable extends DataTable
             Column::computed('DT_RowIndex')
                 ->title('#')
                 ->searchable(false)
-                ->orderable(false),
+                ->orderable(false)
+                ->width(40)
+                ->addClass('text-slate-400'),
 
-            Column::make('full_name')->title('Name'),
-            Column::make('phone')->title('Phone'),
-            Column::make('email')->title('Email'),
+            Column::computed('customer')
+                ->title('Customer')
+                ->searchable(true)
+                ->orderable(false)
+                ->addClass('min-w-[280px]'),
+            Column::make('phone')->title('Phone')->addClass('whitespace-nowrap'),
             Column::make('status')->title('Status'),
             Column::make('source')->title('Source'),
+            Column::make('created_at')->title('Created')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
 
             Column::computed('action')
                 ->title('Actions')
                 ->searchable(false)
-                ->orderable(false),
+                ->orderable(false)
+                ->width(160)
+                ->addClass('text-right'),
         ];
     }
 
