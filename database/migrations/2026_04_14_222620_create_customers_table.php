@@ -23,6 +23,11 @@ return new class extends Migration
             $table->foreignId('level_id')->nullable()->constrained('levels')->onDelete('cascade');
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('cascade');
             $table->string('created_by')->nullable()->constrained('users')->onDelete('cascade');
+            $table->integer('age')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('address')->nullable();
+            $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
+
             $table->softDeletes();
             $table->timestamps();
         });
