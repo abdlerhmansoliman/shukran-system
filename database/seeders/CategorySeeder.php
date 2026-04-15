@@ -9,27 +9,27 @@ class CategorySeeder extends Seeder
 {
     public function run(): void
     {
-        $adults = Category::create([
+        $adults = Category::query()->firstOrCreate([
             'name' => 'Adults',
             'parent_id' => null,
         ]);
 
-        $kids = Category::create([
+        $kids = Category::query()->firstOrCreate([
             'name' => 'Kids',
             'parent_id' => null,
         ]);
 
-        Category::create([
+        Category::query()->firstOrCreate([
             'name' => '6-8',
             'parent_id' => $kids->id,
         ]);
 
-        Category::create([
+        Category::query()->firstOrCreate([
             'name' => '9-12',
             'parent_id' => $kids->id,
         ]);
 
-        Category::create([
+        Category::query()->firstOrCreate([
             'name' => '13-15',
             'parent_id' => $kids->id,
         ]);

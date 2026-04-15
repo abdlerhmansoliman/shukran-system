@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('notes')->nullable();
             $table->foreignId('level_id')->nullable()->constrained('levels')->onDelete('cascade');
             $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('cascade');
-            $table->string('created_by')->nullable()->constrained('users')->onDelete('cascade');
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->integer('age')->nullable();
             $table->string('gender')->nullable();
             $table->string('address')->nullable();

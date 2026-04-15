@@ -16,7 +16,7 @@ class LevelSeeder extends Seeder
         ];
 
         foreach ($levels as $level) {
-            Level::create([
+            Level::query()->firstOrCreate([
                 'name' => $level,
             ]);
         }

@@ -5,11 +5,12 @@ namespace App\Models;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
     /** @use HasFactory<CustomerFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'first_name',
@@ -21,7 +22,11 @@ class Customer extends Model
         'notes',
         'level_id',
         'category_id',
-        'created_by'
+        'created_by',
+        'age',
+        'gender',
+        'address',
+        'country_id',
     ];
 
     public function creator()
@@ -37,5 +42,15 @@ class Customer extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function country()
+    {
+        return $this->belongsTo(Country::class);
+    }
+
+    public function customerPackages()
+    {
+        return $this->hasMany(CustomerPackage::class);
     }
 }

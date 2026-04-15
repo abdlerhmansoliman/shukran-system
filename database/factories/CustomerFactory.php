@@ -2,7 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
 use App\Models\Customer;
+use App\Models\Country;
+use App\Models\Level;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -38,7 +41,13 @@ class CustomerFactory extends Factory
                 'sales call',
             ]),
             'notes' => fake()->boolean(70) ? fake()->sentence() : null,
+            'level_id' => Level::query()->inRandomOrder()->value('id'),
+            'category_id' => Category::query()->inRandomOrder()->value('id'),
             'created_by' => null,
+            'age' => fake()->numberBetween(6, 55),
+            'gender' => fake()->randomElement(['male', 'female']),
+            'address' => fake()->address(),
+            'country_id' => Country::query()->inRandomOrder()->value('id'),
         ];
     }
 }

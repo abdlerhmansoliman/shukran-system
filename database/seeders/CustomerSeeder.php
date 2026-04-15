@@ -14,9 +14,15 @@ class CustomerSeeder extends Seeder
     public function run(): void
     {
         $admin = User::query()->first();
+        $existingCount = Customer::query()->count();
+        $missingCount = max(30 - $existingCount, 0);
+
+        if ($missingCount === 0) {
+            return;
+        }
 
         Customer::factory()
-            ->count(30)
+            ->count($missingCount)
             ->state(fn () => [
                 'created_by' => $admin?->id,
             ])
