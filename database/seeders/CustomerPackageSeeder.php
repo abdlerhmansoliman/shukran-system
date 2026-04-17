@@ -29,6 +29,17 @@ class CustomerPackageSeeder extends Seeder
             $price = (float) $package->price;
             $discount = fake()->randomElement([0, 50, 100, 150, 200]);
             $finalPrice = max($price - $discount, 0);
+            $paidAmount = fake()->randomElement([
+                0,
+                round($finalPrice / 2, 2),
+                $finalPrice,
+            ]);
+            $remainingAmount = max($finalPrice - $paidAmount, 0);
+            $paymentStatus = match (true) {
+                $paidAmount <= 0 => 'unpaid',
+                $remainingAmount > 0 => 'partial',
+                default => 'paid',
+            };
             $startDate = fake()->dateTimeBetween('-3 months', 'now');
             $status = fake()->randomElement(['active', 'completed', 'cancelled']);
             $endDate = $status === 'active'
@@ -44,6 +55,10 @@ class CustomerPackageSeeder extends Seeder
                     'price' => $price,
                     'discount' => $discount,
                     'final_price' => $finalPrice,
+                    'paid_amount' => $paidAmount,
+                    'remaining_amount' => $remainingAmount,
+                    'payment_date' => $paidAmount > 0 ? fake()->dateTimeBetween($startDate, 'now') : null,
+                    'payment_status' => $paymentStatus,
                     'start_date' => $startDate,
                     'end_date' => $endDate,
                     'status' => $status,

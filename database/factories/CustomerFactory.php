@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Country;
 use App\Models\Level;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,6 +26,8 @@ class CustomerFactory extends Factory
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
         $hasEmail = fake()->boolean(85);
+        $customerType = fake()->randomElement(['new', 'old']);
+        $staffIds = User::query()->pluck('id');
 
         return [
             'first_name' => $firstName,
@@ -40,6 +43,12 @@ class CustomerFactory extends Factory
                 'referral',
                 'sales call',
             ]),
+            'customer_type' => $customerType,
+            'placement_month' => fake()->optional(80)->dateTimeBetween('-4 months', 'now')?->format('Y-m-01'),
+            'tester_id' => $staffIds->isNotEmpty() ? $staffIds->random() : null,
+            'old_instructor_id' => $customerType === 'old' && $staffIds->isNotEmpty()
+                ? $staffIds->random()
+                : null,
             'notes' => fake()->boolean(70) ? fake()->sentence() : null,
             'level_id' => Level::query()->inRandomOrder()->value('id'),
             'category_id' => Category::query()->inRandomOrder()->value('id'),

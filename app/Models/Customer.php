@@ -27,7 +27,19 @@ class Customer extends Model
         'gender',
         'address',
         'country_id',
+        'customer_type',
+        'tester_id',
+        'placement_month',
+        'old_instructor_id',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'age' => 'integer',
+            'placement_month' => 'date',
+        ];
+    }
 
     public function creator()
     {
@@ -52,5 +64,15 @@ class Customer extends Model
     public function customerPackages()
     {
         return $this->hasMany(CustomerPackage::class);
+    }
+
+    public function tester()
+    {
+        return $this->belongsTo(User::class, 'tester_id');
+    }
+
+    public function oldInstructor()
+    {
+        return $this->belongsTo(User::class, 'old_instructor_id');
     }
 }

@@ -1,22 +1,26 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $fullName = trim($customer->first_name . ' ' . $customer->last_name);
+@endphp
+
 <div class="bg-slate-100/70 py-10">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Customer Management') }}</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Add Customer') }}</h1>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Edit Customer') }}</h1>
                 <p class="mt-2 text-sm text-slate-500">
-                    {{ __('Capture contact details, placement context, and classification before opening the customer profile.') }}
+                    {{ __('Update profile, placement, and classification details for :name.', ['name' => $fullName ?: __('this customer')]) }}
                 </p>
             </div>
 
             <a
-                href="{{ route('customers.index') }}"
+                href="{{ route('customers.show', $customer) }}"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
-                {{ __('Back to Customers') }}
+                {{ __('Back to Profile') }}
             </a>
         </div>
 
@@ -26,13 +30,14 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('customers.store') }}" class="space-y-6">
+        <form method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-6">
             @csrf
+            @method('PUT')
 
             @include('customers._form', [
-                'customer' => null,
-                'submitLabel' => __('Create Customer'),
-                'cancelUrl' => route('customers.index'),
+                'customer' => $customer,
+                'submitLabel' => __('Update Customer'),
+                'cancelUrl' => route('customers.show', $customer),
             ])
         </form>
     </div>

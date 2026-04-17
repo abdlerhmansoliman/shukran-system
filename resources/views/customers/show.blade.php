@@ -10,6 +10,8 @@
     $packages = $customer->customerPackages->sortByDesc('created_at')->values();
     $activePackagesCount = $packages->where('status', 'active')->count();
     $totalPackageValue = $packages->sum('final_price');
+    $totalPaidAmount = $packages->sum('paid_amount');
+    $totalRemainingAmount = $packages->sum('remaining_amount');
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -27,6 +29,12 @@
 
             <div class="flex flex-wrap items-center gap-3">
                 <a
+                    href="{{ route('customers.edit', $customer) }}"
+                    class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Edit Customer') }}
+                </a>
+                <a
                     href="{{ route('customers.index') }}"
                     class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
@@ -34,6 +42,12 @@
                 </a>
             </div>
         </div>
+
+        @if(session('success'))
+            <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700">
+                {{ session('success') }}
+            </div>
+        @endif
 
         <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <div class="space-y-6">
@@ -50,14 +64,18 @@
 
                                 <div class="mt-3 flex flex-wrap items-center gap-2">
                                     <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customer->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-slate-100 text-slate-600 ring-slate-500/20' }}">
-                                        {{ \Illuminate\Support\Str::headline($customer->status) }}
+                                        {{ __(\Illuminate\Support\Str::headline($customer->status)) }}
                                     </span>
 
                                     @if($customer->source)
                                         <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-inset ring-sky-600/20">
-                                            {{ \Illuminate\Support\Str::headline($customer->source) }}
+                                            {{ __(\Illuminate\Support\Str::headline($customer->source)) }}
                                         </span>
                                     @endif
+
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customer->customer_type === 'old' ? 'bg-violet-50 text-violet-700 ring-violet-600/20' : 'bg-teal-50 text-teal-700 ring-teal-600/20' }}">
+                                        {{ __(\Illuminate\Support\Str::headline($customer->customer_type ?? 'new')) }}
+                                    </span>
 
                                     @if($customer->country?->name)
                                         <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20">
@@ -80,6 +98,14 @@
                             <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
                                 <p class="font-medium text-slate-700">{{ __('Total Package Value') }}</p>
                                 <p class="mt-1">{{ number_format((float) $totalPackageValue, 2) }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                <p class="font-medium text-slate-700">{{ __('Total Paid') }}</p>
+                                <p class="mt-1">{{ number_format((float) $totalPaidAmount, 2) }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                <p class="font-medium text-slate-700">{{ __('Remaining') }}</p>
+                                <p class="mt-1">{{ number_format((float) $totalRemainingAmount, 2) }}</p>
                             </div>
                         </div>
                     </div>
@@ -118,11 +144,15 @@
                         <div class="mt-5 space-y-4">
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Status') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($customer->status) }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ __(\Illuminate\Support\Str::headline($customer->status)) }}</p>
                             </div>
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Source') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->source ? \Illuminate\Support\Str::headline($customer->source) : __('Not specified') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->source ? __(\Illuminate\Support\Str::headline($customer->source)) : __('Not specified') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Customer Type') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ __(\Illuminate\Support\Str::headline($customer->customer_type ?? 'new')) }}</p>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -131,7 +161,7 @@
                                 </div>
                                 <div>
                                     <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Gender') }}</p>
-                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->gender ? \Illuminate\Support\Str::headline($customer->gender) : __('Not specified') }}</p>
+                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->gender ? __(\Illuminate\Support\Str::headline($customer->gender)) : __('Not specified') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -158,16 +188,34 @@
                     </div>
 
                     <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Ownership') }}</p>
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Placement Context') }}</p>
                         <div class="mt-5 space-y-4">
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Created By') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->creator?->name ?: __('System / Unknown') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Placement Month') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->placement_month?->format('F Y') ?: __('Not specified') }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Customer Reference') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">CUS-{{ str_pad((string) $customer->id, 5, '0', STR_PAD_LEFT) }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Tester') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->tester?->name ?: __('Not specified') }}</p>
                             </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Old Instructor') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->oldInstructor?->name ?: __('Not specified') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Ownership') }}</p>
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Created By') }}</p>
+                            <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->creator?->name ?: __('System / Unknown') }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Customer Reference') }}</p>
+                            <p class="mt-2 text-base font-semibold text-slate-900">CUS-{{ str_pad((string) $customer->id, 5, '0', STR_PAD_LEFT) }}</p>
                         </div>
                     </div>
                 </div>
@@ -193,7 +241,7 @@
                                                     {{ $customerPackage->package?->name ?: __('Unknown package') }}
                                                 </h3>
                                                 <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customerPackage->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : ($customerPackage->status === 'completed' ? 'bg-sky-50 text-sky-700 ring-sky-600/20' : 'bg-rose-50 text-rose-700 ring-rose-600/20') }}">
-                                                    {{ \Illuminate\Support\Str::headline($customerPackage->status) }}
+                                                    {{ __(\Illuminate\Support\Str::headline($customerPackage->status)) }}
                                                 </span>
                                             </div>
 
@@ -202,7 +250,7 @@
                                             </p>
                                         </div>
 
-                                        <div class="grid gap-3 sm:grid-cols-3">
+                                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                                             <div class="rounded-2xl bg-slate-50 px-4 py-3">
                                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Price') }}</p>
                                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->price, 2) }}</p>
@@ -215,10 +263,22 @@
                                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Final Price') }}</p>
                                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->final_price, 2) }}</p>
                                             </div>
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Paid') }}</p>
+                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->paid_amount, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Remaining') }}</p>
+                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->remaining_amount, 2) }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Payment Status') }}</p>
+                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customerPackage->payment_status ? __(\Illuminate\Support\Str::headline($customerPackage->payment_status)) : __('Not specified') }}</p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                                         <div>
                                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Start Date') }}</p>
                                             <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->start_date ? \Illuminate\Support\Carbon::parse($customerPackage->start_date)->format('M d, Y') : __('Not scheduled') }}</p>
@@ -226,6 +286,10 @@
                                         <div>
                                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('End Date') }}</p>
                                             <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->end_date ? \Illuminate\Support\Carbon::parse($customerPackage->end_date)->format('M d, Y') : __('Open-ended') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Payment Date') }}</p>
+                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->payment_date ? \Illuminate\Support\Carbon::parse($customerPackage->payment_date)->format('M d, Y') : __('Not paid yet') }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Assigned By') }}</p>
