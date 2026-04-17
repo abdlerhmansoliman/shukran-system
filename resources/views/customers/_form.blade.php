@@ -1,6 +1,7 @@
 @php
     $statusValue = old('status', $customer?->status ?? \App\Enums\CustomerStatus::Inactive->value);
-    $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m'));
+    $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m-d'));
+    $selectedPackageId = old('package_id', $customer?->customerPackages?->sortByDesc('created_at')->first()?->package_id);
 @endphp
 
 <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -76,8 +77,8 @@
                 </div>
 
                 <div>
-                    <label for="placement_month" class="text-sm font-semibold text-slate-700">{{ __('Placement Month') }}</label>
-                    <input id="placement_month" name="placement_month" type="month" value="{{ $placementMonth }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <label for="placement_month" class="text-sm font-semibold text-slate-700">{{ __('Placement Date') }}</label>
+                    <input id="placement_month" name="placement_month" type="date" value="{{ $placementMonth }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('placement_month')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
@@ -145,6 +146,23 @@
         </div>
 
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package') }}</p>
+
+            <div class="mt-6">
+                <label for="package_id" class="text-sm font-semibold text-slate-700">{{ __('Package') }}</label>
+                <select id="package_id" name="package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <option value="">{{ __('Not specified') }}</option>
+                    @foreach($packages as $package)
+                        <option value="{{ $package->id }}" @selected((string) $selectedPackageId === (string) $package->id)>
+                            {{ $package->name }} - {{ number_format((float) $package->price, 2) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+            </div>
+        </div>
+
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Placement Context') }}</p>
 
             <div class="mt-6 space-y-5">
@@ -160,7 +178,7 @@
                 </div>
 
                 <div>
-                    <label for="old_instructor_id" class="text-sm font-semibold text-slate-700">{{ __('Old Instructor') }}</label>
+                    <label for="old_instructor_id" class="text-sm font-semibold text-slate-700">{{ __('Instructor') }}</label>
                     <select id="old_instructor_id" name="old_instructor_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
                         @foreach($users as $user)

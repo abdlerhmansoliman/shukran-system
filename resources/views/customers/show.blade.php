@@ -199,7 +199,7 @@
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->tester?->name ?: __('Not specified') }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Old Instructor') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Instructor') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->oldInstructor?->name ?: __('Not specified') }}</p>
                             </div>
                         </div>

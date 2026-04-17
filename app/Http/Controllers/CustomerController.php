@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Country;
 use App\Models\Customer;
 use App\Models\Level;
+use App\Models\Package;
 use App\Models\User;
 
 class CustomerController extends Controller
@@ -35,6 +36,8 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
+        $customer->load('customerPackages.package');
+
         return view('customers.edit', [
             'customer' => $customer,
             ...$this->formData(),
@@ -80,6 +83,10 @@ class CustomerController extends Controller
                 ->orderBy('name')
                 ->get(),
             'levels' => Level::query()
+                ->orderBy('name')
+                ->get(),
+            'packages' => Package::query()
+                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'statuses' => CustomerStatus::options(),

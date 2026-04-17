@@ -40,9 +40,10 @@ class CustomerStoreRequest extends FormRequest
             'status' => ['required', Rule::in(CustomerStatus::values())],
             'source' => ['nullable', 'string', 'max:255'],
             'customer_type' => ['required', Rule::in(['new', 'old'])],
-            'placement_month' => ['nullable', 'date_format:Y-m'],
+            'placement_month' => ['nullable', 'date'],
             'tester_id' => ['nullable', 'exists:users,id'],
             'old_instructor_id' => ['nullable', 'exists:users,id'],
+            'package_id' => ['nullable', 'exists:packages,id'],
             'age' => ['nullable', 'integer', 'min:0', 'max:120'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:255'],
@@ -59,14 +60,7 @@ class CustomerStoreRequest extends FormRequest
     public function customerData(): array
     {
         $validated = $this->validated();
-
-        if (($validated['customer_type'] ?? null) !== 'old') {
-            $validated['old_instructor_id'] = null;
-        }
-
-        if (! empty($validated['placement_month'])) {
-            $validated['placement_month'] .= '-01';
-        }
+        unset($validated['package_id']);
 
         $validated['created_by'] = $this->user()?->id;
 

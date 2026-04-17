@@ -91,6 +91,18 @@
         color: #e2e8f0 !important;
         border-color: #1e293b !important;
     }
+
+    html.dark input,
+    html.dark select,
+    html.dark textarea {
+        color: #000000 !important;
+    }
+
+    html.dark input::placeholder,
+    html.dark textarea::placeholder {
+        color: #000000 !important;
+        opacity: 1;
+    }
 }
 
 @layer components {
