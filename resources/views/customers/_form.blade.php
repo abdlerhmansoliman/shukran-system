@@ -2,6 +2,10 @@
     $statusValue = old('status', $customer?->status ?? \App\Enums\CustomerStatus::Inactive->value);
     $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m-d'));
     $selectedPackageId = old('package_id', $customer?->customerPackages?->sortByDesc('created_at')->first()?->package_id);
+    $selectedPackageIds = collect(old('package_ids', []))
+        ->map(fn ($packageId) => (string) $packageId)
+        ->values()
+        ->all();
 @endphp
 
 <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -149,16 +153,48 @@
             <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package') }}</p>
 
             <div class="mt-6">
-                <label for="package_id" class="text-sm font-semibold text-slate-700">{{ __('Package') }}</label>
-                <select id="package_id" name="package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                    <option value="">{{ __('Not specified') }}</option>
-                    @foreach($packages as $package)
-                        <option value="{{ $package->id }}" @selected((string) $selectedPackageId === (string) $package->id)>
-                            {{ $package->name }} - {{ number_format((float) $package->price, 2) }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @if($customer)
+                    <label for="package_id" class="text-sm font-semibold text-slate-700">{{ __('Package') }}</label>
+                    <select id="package_id" name="package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" @selected((string) $selectedPackageId === (string) $package->id)>
+                                {{ $package->name }} - {{ number_format((float) $package->price, 2) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @else
+                    <p class="text-sm font-semibold text-slate-700">{{ __('Packages') }}</p>
+                    <p class="mt-2 text-sm text-slate-500">{{ __('Choose one or more packages when creating the customer.') }}</p>
+
+                    <div class="mt-4 space-y-3">
+                        @forelse($packages as $package)
+                            <label class="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-50">
+                                <input
+                                    type="checkbox"
+                                    name="package_ids[]"
+                                    value="{{ $package->id }}"
+                                    @checked(in_array((string) $package->id, $selectedPackageIds, true))
+                                    class="mt-1 rounded border-slate-300 text-slate-900 shadow-sm focus:ring-slate-900/10"
+                                >
+                                <span class="block">
+                                    <span class="block text-sm font-semibold text-slate-900">{{ $package->name }}</span>
+                                    <span class="mt-1 block text-sm text-slate-500">
+                                        {{ __('Levels: :count', ['count' => $package->levels_count]) }} - {{ number_format((float) $package->price, 2) }}
+                                    </span>
+                                </span>
+                            </label>
+                        @empty
+                            <p class="rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500">
+                                {{ __('No active packages are available right now.') }}
+                            </p>
+                        @endforelse
+                    </div>
+
+                    @error('package_ids')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                    @error('package_ids.*')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @endif
             </div>
         </div>
 

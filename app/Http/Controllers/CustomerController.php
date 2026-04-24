@@ -28,6 +28,30 @@ class CustomerController extends Controller
     public function store(CustomerStoreRequest $request)
     {
         $customer = Customer::query()->create($request->customerData());
+        $packageIds = collect($request->validated('package_ids', []));
+
+        if ($packageIds->isNotEmpty()) {
+            $packages = Package::query()
+                ->whereIn('id', $packageIds)
+                ->get();
+
+            $customer->customerPackages()->createMany(
+                $packages->map(fn (Package $package) => [
+                    'package_id' => $package->id,
+                    'price' => $package->price,
+                    'discount' => 0,
+                    'final_price' => $package->price,
+                    'paid_amount' => 0,
+                    'remaining_amount' => $package->price,
+                    'payment_date' => null,
+                    'payment_status' => 'unpaid',
+                    'start_date' => now()->toDateString(),
+                    'end_date' => null,
+                    'status' => 'active',
+                    'created_by' => $request->user()?->id,
+                ])->all()
+            );
+        }
 
         return redirect()
             ->route('customers.show', $customer)
