@@ -18,9 +18,6 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
     return redirect()->back();
 })->name('locale.switch');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -32,6 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
 });
 
 

@@ -3,10 +3,9 @@ import 'datatables.net-dt/css/dataTables.dataTables.css';
 
 import Alpine from 'alpinejs';
 import $ from 'jquery';
-import DataTable from 'datatables.net-dt';
+import 'datatables.net-dt';
 
 window.$ = window.jQuery = $;
-DataTable(window, $);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
     if (localStorage.getItem('theme')) {
         return;
@@ -18,5 +17,29 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (ev
 });
 
 window.Alpine = Alpine;
+
+Alpine.data('appLayout', () => ({
+    isDesktop: window.innerWidth >= 1024,
+    sidebarOpen: window.innerWidth >= 1024,
+    init() {
+        this.handleResize = () => {
+            this.isDesktop = window.innerWidth >= 1024;
+        };
+
+        window.addEventListener('resize', this.handleResize);
+    },
+    toggleSidebar() {
+        this.sidebarOpen = !this.sidebarOpen;
+    },
+    closeSidebar() {
+        this.sidebarOpen = false;
+    },
+    sidebarTransform() {
+        return this.sidebarOpen ? 'transform: translateX(0);' : 'transform: translateX(-100%);';
+    },
+    contentOffset() {
+        return this.isDesktop && this.sidebarOpen ? 'padding-left: 18rem;' : 'padding-left: 0;';
+    },
+}));
 
 Alpine.start();

@@ -29,20 +29,28 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased bg-slate-100 text-slate-900 transition-colors duration-300">
-        <div x-data="{ sidebarOpen: false }" class="min-h-screen">
+        <div
+            x-data="appLayout"
+            @keydown.escape.window="closeSidebar()"
+            class="min-h-screen"
+        >
             @include('layouts.navigation')
 
-            <div class="lg:pl-72">
+            <div :style="contentOffset()">
                 <header class="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
                     <div class="flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div class="flex items-center gap-4">
                             <button
                                 type="button"
-                                @click="sidebarOpen = true"
-                                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 lg:hidden"
+                                @click="toggleSidebar()"
+                                class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+                                :aria-label="sidebarOpen ? '{{ __('Close sidebar') }}' : '{{ __('Open sidebar') }}'"
                             >
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg x-show="!sidebarOpen" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                                <svg x-show="sidebarOpen" x-cloak class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 18l-6-6 6-6M19 5v14" />
                                 </svg>
                             </button>
 

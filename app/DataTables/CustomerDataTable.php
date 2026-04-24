@@ -159,11 +159,11 @@ class CustomerDataTable extends DataTable
                 ->title(__('Customer'))
                 ->searchable(true)
                 ->orderable(false)
-                ->addClass('min-w-[280px]'),
-            Column::make('phone')->title(__('Phone'))->addClass('whitespace-nowrap'),
+                ->addClass('min-w-[340px]'),
+            Column::make('phone')->title(__('Phone'))->addClass('whitespace-nowrap min-w-[180px]'),
             Column::make('status')->title(__('Status')),
             Column::make('source')->title(__('Source')),
-            Column::make('created_at')->title(__('Created'))->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
+            Column::make('created_at')->title(__('Created'))->addClass('whitespace-nowrap min-w-[160px]')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
 
             Column::computed('action')
                 ->title(__('Actions'))

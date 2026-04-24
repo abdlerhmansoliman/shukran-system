@@ -3,18 +3,18 @@
 @endphp
 
 <div
-    x-show="sidebarOpen"
+    x-show="sidebarOpen && !isDesktop"
     x-transition.opacity
-    @click="sidebarOpen = false"
-    class="fixed inset-0 z-30 bg-slate-950/40 lg:hidden"
+    @click="closeSidebar()"
+    class="fixed inset-0 z-30 bg-slate-950/40"
     style="display: none;"
 ></div>
 
 <aside
-    class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0 lg:shadow-none"
-    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-300"
+    :style="sidebarTransform()"
 >
-    <div class="flex h-20 items-center justify-between border-b border-slate-200 px-6">
+    <div class="flex h-20 items-center border-b border-slate-200 px-6">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
             <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-sm">
                 <x-application-logo class="h-6 w-6 fill-current" />
@@ -26,9 +26,12 @@
         </a>
 
         <button
+            x-show="!isDesktop"
+            x-cloak
             type="button"
-            @click="sidebarOpen = false"
-            class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 lg:hidden"
+            @click="closeSidebar()"
+            class="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+            aria-label="{{ __('Close sidebar') }}"
         >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
