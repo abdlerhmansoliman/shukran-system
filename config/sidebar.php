@@ -37,6 +37,22 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Employees',
+                    'subtitle' => 'Team and payroll records',
+                    'route' => 'employees.index',
+                    'active' => ['employees.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2',
+                            'M22 21v-2a4 4 0 00-3-3.87',
+                            'M16 3.13a4 4 0 010 7.75',
+                        ],
+                        'circles' => [
+                            ['cx' => '9', 'cy' => '7', 'r' => '4'],
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Profile',
                     'subtitle' => 'Account settings',
                     'route' => 'profile.edit',

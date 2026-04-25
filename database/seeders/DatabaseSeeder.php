@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             LevelSeeder::class,
             PackageSeeder::class,
+            EmployeePayrollSeeder::class,
             CustomerSeeder::class,
             CustomerPackageSeeder::class,
         ]);

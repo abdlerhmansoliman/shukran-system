@@ -16,7 +16,7 @@ return new class extends Migration
 
             $table->foreignId('employee_id')->constrained()->cascadeOnDelete();
 
-            $table->unsignedTinyInteger('month');
+            $table->enum('month', array_map('strval', range(1, 12)));
             $table->unsignedSmallInteger('year');
 
             $table->enum('type', ['bonus', 'deduction']);
@@ -26,7 +26,6 @@ return new class extends Migration
             $table->text('notes')->nullable();
 
             $table->timestamps();
-            $table->check('month between 1 and 12');
         });
     }
 
