@@ -97,8 +97,14 @@
     }
 
     html.dark input,
+    html.dark input[class~="text-slate-700"],
+    html.dark input[class~="text-gray-700"],
     html.dark select,
-    html.dark textarea {
+    html.dark select[class~="text-slate-700"],
+    html.dark select[class~="text-gray-700"],
+    html.dark textarea,
+    html.dark textarea[class~="text-slate-700"],
+    html.dark textarea[class~="text-gray-700"] {
         color: #000000 !important;
     }
 

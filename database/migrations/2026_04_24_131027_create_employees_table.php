@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
-            $table->foreignId('department_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('department_id')->constrained()->restrictOnDelete();
             $table->unsignedTinyInteger('age')->nullable();
             $table->string('phone')->nullable();
             $table->string('job_title')->nullable();
@@ -24,6 +24,7 @@ return new class extends Migration
 
             $table->date('hire_date')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

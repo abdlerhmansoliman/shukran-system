@@ -47,7 +47,11 @@ class CustomerDataTable extends DataTable
                 ';
             })
             ->editColumn('phone', function (Customer $customer) {
-                return '<span class="font-medium text-slate-700">' . e($customer->phone) . '</span>';
+                $secondPhone = $customer->second_phone_number
+                    ? '<div class="mt-1 text-xs text-slate-500">' . e(__('Second Phone')) . ': ' . e($customer->second_phone_number) . '</div>'
+                    : '';
+
+                return '<span class="font-medium text-slate-700">' . e($customer->phone) . '</span>' . $secondPhone;
             })
             ->editColumn('status', function (Customer $customer) {
                 $classes = $customer->status === 'active'
@@ -72,7 +76,9 @@ class CustomerDataTable extends DataTable
                         ->where('first_name', 'like', "%{$keyword}%")
                         ->orWhere('last_name', 'like', "%{$keyword}%")
                         ->orWhereRaw("CONCAT(first_name, ' ', last_name) like ?", ["%{$keyword}%"])
-                        ->orWhere('email', 'like', "%{$keyword}%");
+                        ->orWhere('email', 'like', "%{$keyword}%")
+                        ->orWhere('phone', 'like', "%{$keyword}%")
+                        ->orWhere('second_phone_number', 'like', "%{$keyword}%");
                 });
             })
             ->rawColumns(['customer', 'phone', 'status', 'source', 'action'])

@@ -12,6 +12,7 @@ class Package extends Model
         'price',
         'status',
     ];
+
     public function customerPackages()
     {
         return $this->hasMany(CustomerPackage::class);

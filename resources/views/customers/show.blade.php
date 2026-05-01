@@ -120,6 +120,10 @@
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->phone ?: __('Not specified') }}</p>
                             </div>
                             <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Second Phone') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->second_phone_number ?: __('Not specified') }}</p>
+                            </div>
+                            <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Email') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->email ?: __('No email provided') }}</p>
                             </div>

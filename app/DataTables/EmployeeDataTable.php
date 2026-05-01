@@ -36,7 +36,9 @@ class EmployeeDataTable extends DataTable
                             '.e($initials ?: 'NA').'
                         </div>
                         <div>
-                            <div class="font-semibold text-slate-900">'.e($name).'</div>
+                            <a href="'.e(route('employees.show', $employee->id)).'" class="font-semibold text-slate-900 transition hover:text-indigo-600 hover:underline">
+                                '.e($name).'
+                            </a>
                             <div class="text-sm text-slate-500">'.e($employee->user?->email ?: __('No email provided')).'</div>
                         </div>
                     </div>
@@ -82,6 +84,9 @@ class EmployeeDataTable extends DataTable
                     ? '<span class="whitespace-nowrap text-slate-700">'.e($employee->hire_date->format('M d, Y')).'</span>'
                     : '<span class="text-sm text-slate-400">'.e(__('Not specified')).'</span>';
             })
+            ->addColumn('action', function (Employee $employee) {
+                return view('components.employee-datatable-actions', compact('employee'))->render();
+            })
             ->filterColumn('employee', function (QueryBuilder $query, string $keyword) {
                 $query->whereHas('user', function (QueryBuilder $builder) use ($keyword) {
                     $builder
@@ -94,7 +99,7 @@ class EmployeeDataTable extends DataTable
                     $builder->where('name', 'like', "%{$keyword}%");
                 });
             })
-            ->rawColumns(['employee', 'department', 'job_title', 'phone', 'age', 'basic_salary', 'salary_type', 'status', 'hire_date'])
+            ->rawColumns(['employee', 'department', 'job_title', 'phone', 'age', 'basic_salary', 'salary_type', 'status', 'hire_date', 'action'])
             ->setRowId('id');
     }
 
@@ -194,6 +199,13 @@ class EmployeeDataTable extends DataTable
             Column::make('status')->title(__('Status')),
             Column::make('hire_date')->title(__('Hire Date'))->addClass('whitespace-nowrap min-w-[140px]'),
             Column::make('created_at')->title(__('Created'))->addClass('whitespace-nowrap min-w-[160px]')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
+
+            Column::computed('action')
+                ->title(__('Actions'))
+                ->searchable(false)
+                ->orderable(false)
+                ->width(180)
+                ->addClass('text-right'),
         ];
     }
 

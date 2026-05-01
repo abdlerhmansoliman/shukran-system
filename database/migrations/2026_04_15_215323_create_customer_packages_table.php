@@ -31,7 +31,6 @@ return new class extends Migration
 
             $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
 
-
             $table->foreignId('created_by')
                 ->nullable()
                 ->constrained('users')

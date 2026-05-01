@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Category;
-use App\Models\Customer;
 use App\Models\Country;
+use App\Models\Customer;
 use App\Models\Level;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -34,6 +34,7 @@ class CustomerFactory extends Factory
             'last_name' => $lastName,
             'email' => $hasEmail ? fake()->unique()->safeEmail() : null,
             'phone' => fake()->numerify('+20 1#########'),
+            'second_phone_number' => fake()->optional()->numerify('+20 1#########'),
             'status' => fake()->randomElement(['active', 'inactive']),
             'source' => fake()->randomElement([
                 'website',

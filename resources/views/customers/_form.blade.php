@@ -33,6 +33,12 @@
                 </div>
 
                 <div>
+                    <label for="second_phone_number" class="text-sm font-semibold text-slate-700">{{ __('Second Phone') }}</label>
+                    <input id="second_phone_number" name="second_phone_number" type="text" value="{{ old('second_phone_number', $customer?->second_phone_number) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('second_phone_number')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
                     <label for="email" class="text-sm font-semibold text-slate-700">{{ __('Email') }}</label>
                     <input id="email" name="email" type="email" value="{{ old('email', $customer?->email) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('email')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror

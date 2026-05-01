@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
-    Route::get('employees', [EmployeeController::class, 'index'])->name('employees.index');
+    Route::resource('employees', EmployeeController::class);
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
