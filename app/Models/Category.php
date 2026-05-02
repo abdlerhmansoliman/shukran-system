@@ -8,7 +8,7 @@ class Category extends Model
 {
     protected $fillable = [
         'name',
-        'parent_id'
+        'parent_id',
     ];
 
     public function parent()
@@ -20,9 +20,9 @@ class Category extends Model
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
+
     public function customers()
     {
         return $this->hasMany(Customer::class);
-    } 
-    
+    }
 }

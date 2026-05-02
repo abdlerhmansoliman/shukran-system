@@ -14,11 +14,19 @@ class CustomerSeeder extends Seeder
     public function run(): void
     {
         $admin = User::query()->first();
+        $staffIds = User::query()->pluck('id');
+        $existingCount = Customer::query()->count();
+        $missingCount = max(30 - $existingCount, 0);
+
+        if ($missingCount === 0) {
+            return;
+        }
 
         Customer::factory()
-            ->count(30)
+            ->count($missingCount)
             ->state(fn () => [
                 'created_by' => $admin?->id,
+                'tester_id' => $staffIds->isNotEmpty() ? $staffIds->random() : null,
             ])
             ->create();
     }

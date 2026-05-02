@@ -37,6 +37,49 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Employees',
+                    'subtitle' => 'Team and payroll records',
+                    'route' => 'employees.index',
+                    'active' => ['employees.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2',
+                            'M22 21v-2a4 4 0 00-3-3.87',
+                            'M16 3.13a4 4 0 010 7.75',
+                        ],
+                        'circles' => [
+                            ['cx' => '9', 'cy' => '7', 'r' => '4'],
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Packages',
+                    'subtitle' => 'Plan templates and prices',
+                    'route' => 'packages.index',
+                    'active' => ['packages.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z',
+                            'M7 7h.01',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Levels',
+                    'subtitle' => 'Placement level list',
+                    'route' => 'levels.index',
+                    'active' => ['levels.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M4 20h16',
+                            'M6 16h12',
+                            'M8 12h8',
+                            'M10 8h4',
+                            'M12 4v4',
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Profile',
                     'subtitle' => 'Account settings',
                     'route' => 'profile.edit',

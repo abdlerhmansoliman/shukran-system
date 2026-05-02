@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
     html.dark body {
         background-color: #020617;
         color: #e2e8f0;
@@ -75,13 +79,30 @@
         color: #c7d2fe !important;
     }
 
-    html.dark .customer-table thead th {
+    html.dark .customer-table thead th,
+    html.dark .employee-table thead th,
+    html.dark .package-table thead th,
+    html.dark .level-table thead th {
         background-color: #0b1220 !important;
         color: #94a3b8 !important;
     }
 
-    html.dark .customer-table tbody td {
+    html.dark .customer-table tbody td,
+    html.dark .employee-table tbody td,
+    html.dark .package-table tbody td,
+    html.dark .level-table tbody td {
         color: #cbd5e1 !important;
+    }
+
+    html.dark .customer-table tbody tr,
+    html.dark .customer-table tbody tr:hover,
+    html.dark .employee-table tbody tr,
+    html.dark .employee-table tbody tr:hover,
+    html.dark .package-table tbody tr,
+    html.dark .package-table tbody tr:hover,
+    html.dark .level-table tbody tr,
+    html.dark .level-table tbody tr:hover {
+        background-color: #0f172a !important;
     }
 
     html.dark .dataTables_wrapper .dataTables_paginate .paginate_button,
@@ -90,6 +111,24 @@
         background-color: #0f172a !important;
         color: #e2e8f0 !important;
         border-color: #1e293b !important;
+    }
+
+    html.dark input,
+    html.dark input[class~="text-slate-700"],
+    html.dark input[class~="text-gray-700"],
+    html.dark select,
+    html.dark select[class~="text-slate-700"],
+    html.dark select[class~="text-gray-700"],
+    html.dark textarea,
+    html.dark textarea[class~="text-slate-700"],
+    html.dark textarea[class~="text-gray-700"] {
+        color: #000000 !important;
+    }
+
+    html.dark input::placeholder,
+    html.dark textarea::placeholder {
+        color: #000000 !important;
+        opacity: 1;
     }
 }
 
@@ -114,20 +153,50 @@
         @apply bg-white text-indigo-600;
     }
 
-    .customer-table {
+    .customer-table,
+    .employee-table,
+    .package-table,
+    .level-table {
         @apply w-full border-collapse;
     }
 
-    .customer-table thead th {
+    .customer-table thead th,
+    .employee-table thead th,
+    .package-table thead th,
+    .level-table thead th {
         @apply border-b border-slate-200 bg-slate-50 px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500;
     }
 
-    .customer-table tbody td {
+    .customer-table tbody td,
+    .employee-table tbody td,
+    .package-table tbody td,
+    .level-table tbody td {
         @apply border-b border-slate-100 px-6 py-4 align-middle text-sm text-slate-600;
     }
 
-    .customer-table tbody tr {
-        @apply transition hover:bg-slate-50/80;
+    .customer-table tbody tr,
+    .employee-table tbody tr,
+    .package-table tbody tr,
+    .level-table tbody tr {
+        @apply bg-white;
+    }
+
+    .customer-table tbody tr:hover,
+    .employee-table tbody tr:hover,
+    .package-table tbody tr:hover,
+    .level-table tbody tr:hover {
+        @apply bg-white;
+    }
+
+    .customer-table tbody tr:hover > *,
+    .customer-table tbody tr.selected > *,
+    .employee-table tbody tr:hover > *,
+    .employee-table tbody tr.selected > *,
+    .package-table tbody tr:hover > *,
+    .package-table tbody tr.selected > *,
+    .level-table tbody tr:hover > *,
+    .level-table tbody tr.selected > * {
+        box-shadow: none !important;
     }
 
     .dataTables_wrapper .dataTables_length,
