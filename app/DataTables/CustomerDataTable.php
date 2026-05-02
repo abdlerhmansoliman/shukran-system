@@ -15,14 +15,14 @@ class CustomerDataTable extends DataTable
     /**
      * Build the DataTable class.
      *
-     * @param QueryBuilder<Customer> $query Results from query() method.
+     * @param  QueryBuilder<Customer>  $query  Results from query() method.
      */
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
             ->addIndexColumn()
             ->addColumn('customer', function (Customer $customer) {
-                $name = trim($customer->first_name . ' ' . $customer->last_name);
+                $name = trim($customer->first_name.' '.$customer->last_name);
                 $initials = Str::of($name)
                     ->explode(' ')
                     ->filter()
@@ -35,37 +35,37 @@ class CustomerDataTable extends DataTable
                 return '
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold tracking-wide text-white">
-                            ' . e($initials ?: 'NA') . '
+                            '.e($initials ?: 'NA').'
                         </div>
                         <div>
-                            <a href="' . e(route('customers.show', $customer->id)) . '" class="font-semibold text-slate-900 transition hover:text-indigo-600 hover:underline">
-                                ' . e($name ?: __('Unnamed customer')) . '
+                            <a href="'.e(route('customers.show', $customer->id)).'" class="font-semibold text-slate-900">
+                                '.e($name ?: __('Unnamed customer')).'
                             </a>
-                            <div class="text-sm text-slate-500">' . e($email) . '</div>
+                            <div class="text-sm text-slate-500">'.e($email).'</div>
                         </div>
                     </div>
                 ';
             })
             ->editColumn('phone', function (Customer $customer) {
                 $secondPhone = $customer->second_phone_number
-                    ? '<div class="mt-1 text-xs text-slate-500">' . e(__('Second Phone')) . ': ' . e($customer->second_phone_number) . '</div>'
+                    ? '<div class="mt-1 text-xs text-slate-500">'.e(__('Second Phone')).': '.e($customer->second_phone_number).'</div>'
                     : '';
 
-                return '<span class="font-medium text-slate-700">' . e($customer->phone) . '</span>' . $secondPhone;
+                return '<span class="font-medium text-slate-700">'.e($customer->phone).'</span>'.$secondPhone;
             })
             ->editColumn('status', function (Customer $customer) {
                 $classes = $customer->status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
                     : 'bg-slate-100 text-slate-600 ring-slate-500/20';
 
-                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ' . $classes . '">' . e(__(Str::headline($customer->status))) . '</span>';
+                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset '.$classes.'">'.e(__(Str::headline($customer->status))).'</span>';
             })
             ->editColumn('source', function (Customer $customer) {
                 if (! $customer->source) {
-                    return '<span class="text-sm text-slate-400">' . e(__('Not specified')) . '</span>';
+                    return '<span class="text-sm text-slate-400">'.e(__('Not specified')).'</span>';
                 }
 
-                return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">' . e(__(Str::headline($customer->source))) . '</span>';
+                return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">'.e(__(Str::headline($customer->source))).'</span>';
             })
             ->addColumn('action', function (Customer $customer) {
                 return view('components.datatable-actions', compact('customer'))->render();
@@ -121,8 +121,8 @@ class CustomerDataTable extends DataTable
                         'next' => __('Next'),
                     ],
                 ],
-                'dom' => "<'customer-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>" .
-                    "<'overflow-x-auto'tr>" .
+                'dom' => "<'customer-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>".
+                    "<'overflow-x-auto'tr>".
                     "<'flex flex-col gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between'<'text-sm text-slate-500'i><'pagination-wrap'p>>",
                 'drawCallback' => 'function() {
                     const wrapper = this.api().table().container();
@@ -144,8 +144,7 @@ class CustomerDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(5, 'desc')
-            ->selectStyleSingle();
+            ->orderBy(5, 'desc');
     }
 
     /**
@@ -180,12 +179,11 @@ class CustomerDataTable extends DataTable
         ];
     }
 
-
     /**
      * Get the filename for export.
      */
     protected function filename(): string
     {
-        return 'Customer_' . date('YmdHis');
+        return 'Customer_'.date('YmdHis');
     }
 }

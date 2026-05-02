@@ -13,6 +13,14 @@ class Package extends Model
         'status',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'levels_count' => 'integer',
+            'price' => 'decimal:2',
+        ];
+    }
+
     public function customerPackages()
     {
         return $this->hasMany(CustomerPackage::class);

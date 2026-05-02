@@ -53,6 +53,33 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Packages',
+                    'subtitle' => 'Plan templates and prices',
+                    'route' => 'packages.index',
+                    'active' => ['packages.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z',
+                            'M7 7h.01',
+                        ],
+                    ],
+                ],
+                [
+                    'title' => 'Levels',
+                    'subtitle' => 'Placement level list',
+                    'route' => 'levels.index',
+                    'active' => ['levels.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M4 20h16',
+                            'M6 16h12',
+                            'M8 12h8',
+                            'M10 8h4',
+                            'M12 4v4',
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Profile',
                     'subtitle' => 'Account settings',
                     'route' => 'profile.edit',

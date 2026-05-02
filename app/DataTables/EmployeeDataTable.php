@@ -30,18 +30,20 @@ class EmployeeDataTable extends DataTable
                     ->map(fn (string $part) => Str::upper(Str::substr($part, 0, 1)))
                     ->implode('');
 
+                $showUrl = route('employees.show', $employee);
+
                 return '
-                    <div class="flex items-center gap-3">
+                    <a href="'.e($showUrl).'" class="flex items-center gap-3 text-slate-900">
                         <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold tracking-wide text-white">
                             '.e($initials ?: 'NA').'
                         </div>
                         <div>
-                            <a href="'.e(route('employees.show', $employee->id)).'" class="font-semibold text-slate-900 transition hover:text-indigo-600 hover:underline">
+                            <div class="font-semibold">
                                 '.e($name).'
-                            </a>
+                            </div>
                             <div class="text-sm text-slate-500">'.e($employee->user?->email ?: __('No email provided')).'</div>
                         </div>
-                    </div>
+                    </a>
                 ';
             })
             ->addColumn('department', function (Employee $employee) {
@@ -164,8 +166,7 @@ class EmployeeDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(10, 'desc')
-            ->selectStyleSingle();
+            ->orderBy(10, 'desc');
     }
 
     /**

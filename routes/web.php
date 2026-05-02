@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\LevelController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::resource('packages', PackageController::class)->except('show');
+    Route::resource('levels', LevelController::class)->except('show');
     Route::resource('employees', EmployeeController::class);
     Route::get('/dashboard', function () {
         return view('dashboard');
