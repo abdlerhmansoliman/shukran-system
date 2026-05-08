@@ -16,6 +16,7 @@ class Payment extends Model
         'amount',
         'direction',
         'status',
+        'payment_method_id',
         'method',
         'reference',
         'paid_at',
@@ -39,5 +40,10 @@ class Payment extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function paymentMethod()
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 }

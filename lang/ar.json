@@ -312,5 +312,16 @@
     "Cancelled": "ملغي",
     "Method": "طريقة الدفع",
     "Reference": "المرجع",
-    "Recorded By": "تم التسجيل بواسطة"
+    "Recorded By": "تم التسجيل بواسطة",
+    "Salary payment recorded successfully.": "تم تسجيل دفعة الراتب بنجاح.",
+    "Record Salary Payment": "تسجيل دفعة راتب",
+    "Amount": "المبلغ",
+    "Payment Method": "طريقة الدفع",
+    "Choose payment method": "اختر طريقة الدفع",
+    "Salary Payment": "دفعة راتب",
+    "Record a salary payment for :name.": "سجل دفعة راتب لـ :name.",
+    "Back to Employee": "الرجوع إلى الموظف",
+    "Latest Net Salary": "آخر صافي راتب",
+    "Base Amount": "المبلغ الأساسي",
+    "The final salary payment amount must be greater than zero.": "يجب أن يكون مبلغ دفعة الراتب النهائي أكبر من صفر."
 }

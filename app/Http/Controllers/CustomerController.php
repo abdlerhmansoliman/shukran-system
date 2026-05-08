@@ -106,6 +106,7 @@ class CustomerController extends Controller
             'groupEnrollments.customerPackage.package',
             'payments' => fn ($query) => $query->latest('paid_at')->latest(),
             'payments.creator',
+            'payments.paymentMethod',
         ]);
 
         return view('customers.show', compact('customer'));

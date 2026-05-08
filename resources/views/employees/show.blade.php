@@ -28,8 +28,14 @@
 
             <div class="flex flex-wrap items-center gap-3">
                 <a
-                    href="{{ route('employees.edit', $employee) }}"
+                    href="{{ route('employees.salary-payments.create', $employee) }}"
                     class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Record Salary Payment') }}
+                </a>
+                <a
+                    href="{{ route('employees.edit', $employee) }}"
+                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                     {{ __('Edit Employee') }}
                 </a>
@@ -190,8 +196,16 @@
 
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between gap-4">
-                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Recent Adjustments') }}</p>
-                        <span class="text-sm font-medium text-slate-500">{{ $employee->adjustments->count() }}</span>
+                        <div>
+                            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Recent Adjustments') }}</p>
+                            <span class="mt-1 block text-sm font-medium text-slate-500">{{ $employee->adjustments->count() }}</span>
+                        </div>
+
+                        @if($employee->adjustments->isNotEmpty())
+                            <a href="{{ route('employees.salary-payments.create', $employee) }}" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+                                {{ __('Record Salary Payment') }}
+                            </a>
+                        @endif
                     </div>
 
                     @if($adjustments->isEmpty())

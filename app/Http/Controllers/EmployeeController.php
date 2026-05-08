@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\DataTables\EmployeeDataTable;
 use App\Enums\EmployeeSalaryType;
 use App\Enums\EmployeeStatus;
+use App\Http\Requests\EmployeeSalaryPaymentStoreRequest;
 use App\Http\Requests\EmployeeStoreRequest;
 use App\Http\Requests\EmployeeUpdateRequest;
 use App\Models\Department;
 use App\Models\Employee;
+use App\Models\PaymentMethod;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
@@ -50,9 +53,62 @@ class EmployeeController extends Controller
             'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
             'payments' => fn ($query) => $query->latest('paid_at')->latest(),
             'payments.creator',
+            'payments.paymentMethod',
         ]);
 
         return view('employees.show', compact('employee'));
+    }
+
+    public function createSalaryPayment(Employee $employee)
+    {
+        $employee->load([
+            'user',
+            'department',
+            'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
+        ]);
+
+        return view('employees.salary-payments.create', [
+            'employee' => $employee,
+            'latestPayroll' => $employee->payrolls->first(),
+            'paymentMethods' => PaymentMethod::query()
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    public function storeSalaryPayment(EmployeeSalaryPaymentStoreRequest $request, Employee $employee)
+    {
+        DB::transaction(function () use ($request, $employee) {
+            $employee->payments()->create($request->paymentData());
+            $paidAt = Carbon::parse($request->validated('paid_at'));
+
+            if ($request->bonusAmount() > 0) {
+                $employee->adjustments()->create([
+                    'month' => $paidAt->month,
+                    'year' => $paidAt->year,
+                    'type' => 'bonus',
+                    'amount' => $request->bonusAmount(),
+                    'reason' => 'Salary payment bonus',
+                    'notes' => $request->validated('notes'),
+                ]);
+            }
+
+            if ($request->deductionAmount() > 0) {
+                $employee->adjustments()->create([
+                    'month' => $paidAt->month,
+                    'year' => $paidAt->year,
+                    'type' => 'deduction',
+                    'amount' => $request->deductionAmount(),
+                    'reason' => 'Salary payment deduction',
+                    'notes' => $request->validated('notes'),
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('employees.show', $employee)
+            ->with('success', __('Salary payment recorded successfully.'));
     }
 
     public function edit(Employee $employee)

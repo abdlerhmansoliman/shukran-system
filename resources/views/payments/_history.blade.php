@@ -41,7 +41,7 @@
                     <div class="mt-4 grid gap-3 sm:grid-cols-2">
                         <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Method') }}</p>
-                            <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->method ?: __('Not specified') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->paymentMethod?->name ?: $payment->method ?: __('Not specified') }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Reference') }}</p>

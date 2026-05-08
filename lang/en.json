@@ -312,5 +312,16 @@
     "Cancelled": "Cancelled",
     "Method": "Method",
     "Reference": "Reference",
-    "Recorded By": "Recorded By"
+    "Recorded By": "Recorded By",
+    "Salary payment recorded successfully.": "Salary payment recorded successfully.",
+    "Record Salary Payment": "Record Salary Payment",
+    "Amount": "Amount",
+    "Payment Method": "Payment Method",
+    "Choose payment method": "Choose payment method",
+    "Salary Payment": "Salary Payment",
+    "Record a salary payment for :name.": "Record a salary payment for :name.",
+    "Back to Employee": "Back to Employee",
+    "Latest Net Salary": "Latest Net Salary",
+    "Base Amount": "Base Amount",
+    "The final salary payment amount must be greater than zero.": "The final salary payment amount must be greater than zero."
 }

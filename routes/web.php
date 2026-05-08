@@ -36,6 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('groups', GroupController::class);
     Route::resource('packages', PackageController::class)->except('show');
     Route::resource('levels', LevelController::class)->except('show');
+    Route::get('employees/{employee}/salary-payments/create', [EmployeeController::class, 'createSalaryPayment'])->name('employees.salary-payments.create');
+    Route::post('employees/{employee}/salary-payments', [EmployeeController::class, 'storeSalaryPayment'])->name('employees.salary-payments.store');
     Route::resource('employees', EmployeeController::class);
     Route::get('/dashboard', function () {
         return view('dashboard');
