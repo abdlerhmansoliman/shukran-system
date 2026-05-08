@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Customer;
 use App\Models\Package;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -132,6 +133,82 @@ class CustomerPackageAssignmentTest extends TestCase
         ]);
     }
 
+    public function test_customer_packages_can_be_synced_from_edit_form(): void
+    {
+        $admin = User::factory()->create();
+        $keptPackage = Package::query()->create([
+            'name' => 'Starter',
+            'levels_count' => 1,
+            'price' => 1000,
+            'status' => 'active',
+        ]);
+        $removedPackage = Package::query()->create([
+            'name' => 'Old Intensive',
+            'levels_count' => 2,
+            'price' => 1800,
+            'status' => 'active',
+        ]);
+        $addedPackage = Package::query()->create([
+            'name' => 'Advanced',
+            'levels_count' => 3,
+            'price' => 2500,
+            'status' => 'active',
+        ]);
+        $customer = Customer::query()->create($this->customerPayload());
+        $keptAssignment = $customer->customerPackages()->create([
+            'package_id' => $keptPackage->id,
+            'price' => 1000,
+            'discount' => 0,
+            'final_price' => 1000,
+            'paid_amount' => 0,
+            'remaining_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+        $removedAssignment = $customer->customerPackages()->create([
+            'package_id' => $removedPackage->id,
+            'price' => 1800,
+            'discount' => 0,
+            'final_price' => 1800,
+            'paid_amount' => 0,
+            'remaining_amount' => 1800,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->put(route('customers.update', $customer), [
+                ...$this->customerPayload(),
+                'package_ids' => [$keptPackage->id, $addedPackage->id],
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('customers.show', $customer));
+
+        $this->assertDatabaseHas('customer_packages', [
+            'id' => $keptAssignment->id,
+            'status' => 'active',
+        ]);
+
+        $this->assertDatabaseHas('customer_packages', [
+            'id' => $removedAssignment->id,
+            'status' => 'completed',
+        ]);
+
+        $this->assertDatabaseHas('customer_packages', [
+            'customer_id' => $customer->id,
+            'package_id' => $addedPackage->id,
+            'final_price' => '2500.00',
+            'remaining_amount' => '2500.00',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+    }
+
     public function test_clearing_customer_package_cancels_active_assignments(): void
     {
         $admin = User::factory()->create();
@@ -168,6 +245,67 @@ class CustomerPackageAssignmentTest extends TestCase
         $this->assertDatabaseHas('customer_packages', [
             'id' => $currentAssignment->id,
             'status' => 'cancelled',
+        ]);
+    }
+
+    public function test_customer_payment_updates_package_balance(): void
+    {
+        $admin = User::factory()->create();
+        $paymentMethod = PaymentMethod::query()->create([
+            'name' => 'Bank',
+            'status' => 'active',
+        ]);
+        $package = Package::query()->create([
+            'name' => 'Starter',
+            'levels_count' => 1,
+            'price' => 1000,
+            'status' => 'active',
+        ]);
+        $customer = Customer::query()->create($this->customerPayload());
+        $assignment = $customer->customerPackages()->create([
+            'package_id' => $package->id,
+            'price' => 1000,
+            'discount' => 0,
+            'final_price' => 1000,
+            'paid_amount' => 0,
+            'remaining_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('customers.payments.store', $customer), [
+                'customer_package_id' => $assignment->id,
+                'amount' => 400,
+                'paid_at' => '2026-05-08',
+                'status' => 'completed',
+                'payment_method_id' => $paymentMethod->id,
+                'reference' => 'TXN-123',
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('customers.show', $customer));
+
+        $this->assertDatabaseHas('payments', [
+            'payable_type' => Customer::class,
+            'payable_id' => $customer->id,
+            'customer_package_id' => $assignment->id,
+            'amount' => '400.00',
+            'direction' => 'incoming',
+            'status' => 'completed',
+            'payment_method_id' => $paymentMethod->id,
+            'reference' => 'TXN-123',
+        ]);
+
+        $this->assertDatabaseHas('customer_packages', [
+            'id' => $assignment->id,
+            'paid_amount' => '400.00',
+            'remaining_amount' => '600.00',
+            'payment_date' => '2026-05-08',
+            'payment_status' => 'partial',
         ]);
     }
 

@@ -17,6 +17,7 @@ class Payment extends Model
         'direction',
         'status',
         'payment_method_id',
+        'customer_package_id',
         'method',
         'reference',
         'paid_at',
@@ -45,5 +46,10 @@ class Payment extends Model
     public function paymentMethod()
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    public function customerPackage()
+    {
+        return $this->belongsTo(CustomerPackage::class);
     }
 }

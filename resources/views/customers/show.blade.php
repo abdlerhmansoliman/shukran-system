@@ -31,8 +31,14 @@
 
             <div class="flex flex-wrap items-center gap-3">
                 <a
-                    href="{{ route('customers.edit', $customer) }}"
+                    href="{{ route('customers.payments.create', $customer) }}"
                     class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Record Payment') }}
+                </a>
+                <a
+                    href="{{ route('customers.edit', $customer) }}"
+                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
                     {{ __('Edit Customer') }}
                 </a>

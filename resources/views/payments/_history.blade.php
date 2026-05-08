@@ -43,6 +43,12 @@
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Method') }}</p>
                             <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->paymentMethod?->name ?: $payment->method ?: __('Not specified') }}</p>
                         </div>
+                        @if($payment->customerPackage)
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->customerPackage->package?->name ?: __('Unknown package') }}</p>
+                            </div>
+                        @endif
                         <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Reference') }}</p>
                             <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->reference ?: __('Not specified') }}</p>

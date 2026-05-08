@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\EmployeeDataTable;
 use App\Enums\EmployeeSalaryType;
 use App\Enums\EmployeeStatus;
+use App\Http\Requests\EmployeePayrollStoreRequest;
 use App\Http\Requests\EmployeeSalaryPaymentStoreRequest;
 use App\Http\Requests\EmployeeStoreRequest;
 use App\Http\Requests\EmployeeUpdateRequest;
@@ -77,11 +78,53 @@ class EmployeeController extends Controller
         ]);
     }
 
+    public function createPayroll(Employee $employee)
+    {
+        $employee->load([
+            'user',
+            'department',
+            'monthlyReports' => fn ($query) => $query->latest('year')->latest('month'),
+            'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
+        ]);
+
+        return view('employees.payrolls.create', [
+            'employee' => $employee,
+            'latestReport' => $employee->monthlyReports->first(),
+            'latestPayroll' => $employee->payrolls->first(),
+        ]);
+    }
+
+    public function storePayroll(EmployeePayrollStoreRequest $request, Employee $employee)
+    {
+        DB::transaction(function () use ($request, $employee) {
+            $period = $request->period();
+
+            $employee->monthlyReports()->updateOrCreate($period, $request->reportData());
+            $employee->payrolls()->updateOrCreate($period, $request->payrollData($employee));
+
+            $this->syncPayrollAdjustment($employee, $period, 'bonus', 'Monthly payroll bonus', $request->bonusAmount(), $request->validated('notes'));
+            $this->syncPayrollAdjustment($employee, $period, 'deduction', 'Monthly payroll deduction', $request->deductionAmount(), $request->validated('notes'));
+        });
+
+        return redirect()
+            ->route('employees.show', $employee)
+            ->with('success', __('Payroll generated successfully.'));
+    }
+
     public function storeSalaryPayment(EmployeeSalaryPaymentStoreRequest $request, Employee $employee)
     {
         DB::transaction(function () use ($request, $employee) {
             $employee->payments()->create($request->paymentData());
             $paidAt = Carbon::parse($request->validated('paid_at'));
+
+            if ($request->validated('status') === 'completed') {
+                $employee->payrolls()
+                    ->where('month', $paidAt->month)
+                    ->where('year', $paidAt->year)
+                    ->latest()
+                    ->first()
+                    ?->update(['status' => 'paid']);
+            }
 
             if ($request->bonusAmount() > 0) {
                 $employee->adjustments()->create([
@@ -154,5 +197,31 @@ class EmployeeController extends Controller
             'salaryTypes' => EmployeeSalaryType::options(),
             'statuses' => EmployeeStatus::options(),
         ];
+    }
+
+    /**
+     * @param  array{month: int, year: int}  $period
+     */
+    private function syncPayrollAdjustment(Employee $employee, array $period, string $type, string $reason, float $amount, ?string $notes): void
+    {
+        $query = $employee->adjustments()
+            ->where($period)
+            ->where('type', $type)
+            ->where('reason', $reason);
+
+        if ($amount <= 0) {
+            $query->delete();
+
+            return;
+        }
+
+        $employee->adjustments()->updateOrCreate([
+            ...$period,
+            'type' => $type,
+            'reason' => $reason,
+        ], [
+            'amount' => $amount,
+            'notes' => $notes,
+        ]);
     }
 }

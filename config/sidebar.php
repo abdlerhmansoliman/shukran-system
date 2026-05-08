@@ -95,6 +95,21 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Categories',
+                    'subtitle' => 'Customer and group categories',
+                    'route' => 'categories.index',
+                    'active' => ['categories.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M4 6h16',
+                            'M4 12h16',
+                            'M4 18h16',
+                            'M8 6v12',
+                            'M16 6v12',
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Profile',
                     'subtitle' => 'Account settings',
                     'route' => 'profile.edit',

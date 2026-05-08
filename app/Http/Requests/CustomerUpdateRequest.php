@@ -8,6 +8,24 @@ use Illuminate\Validation\Rule;
 
 class CustomerUpdateRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('package_ids') && $this->has('package_id')) {
+            $this->merge([
+                'package_ids' => $this->filled('package_id') ? [$this->input('package_id')] : [],
+            ]);
+
+            return;
+        }
+
+        $this->merge([
+            'package_ids' => collect($this->input('package_ids', []))
+                ->filter()
+                ->values()
+                ->all(),
+        ]);
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -36,6 +54,8 @@ class CustomerUpdateRequest extends FormRequest
             'tester_id' => ['nullable', 'exists:users,id'],
             'old_instructor_id' => ['nullable', 'exists:users,id'],
             'package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
+            'package_ids' => ['nullable', 'array'],
+            'package_ids.*' => ['integer', 'distinct', Rule::exists('packages', 'id')->where('status', 'active')],
             'age' => ['nullable', 'integer', 'min:0', 'max:120'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:255'],
@@ -52,7 +72,7 @@ class CustomerUpdateRequest extends FormRequest
     public function customerData(): array
     {
         $validated = $this->validated();
-        unset($validated['package_id']);
+        unset($validated['package_id'], $validated['package_ids']);
 
         return $validated;
     }
