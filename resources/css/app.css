@@ -218,6 +218,21 @@
         @apply inline-flex min-w-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900;
     }
 
+    input[type="checkbox"],
+    .group-day-checkbox {
+        appearance: auto !important;
+        -webkit-appearance: auto !important;
+        accent-color: #0f172a;
+        background-image: none !important;
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+    }
+
+    input[type="checkbox"]:disabled {
+        cursor: not-allowed;
+    }
+
     .dataTables_wrapper .dataTables_paginate .paginate_button.current {
         @apply border-slate-900 bg-slate-900 text-white hover:bg-slate-800 hover:text-white;
     }

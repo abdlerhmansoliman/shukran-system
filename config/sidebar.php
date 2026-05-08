@@ -37,6 +37,21 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Groups',
+                    'subtitle' => 'Class groups and enrollments',
+                    'route' => 'groups.index',
+                    'active' => ['groups.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M17 20h5v-2a4 4 0 00-4-4h-1',
+                            'M9 20H4v-2a4 4 0 014-4h1',
+                            'M12 12a4 4 0 100-8 4 4 0 000 8z',
+                            'M6 8a3 3 0 100 6',
+                            'M18 8a3 3 0 110 6',
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Employees',
                     'subtitle' => 'Team and payroll records',
                     'route' => 'employees.index',

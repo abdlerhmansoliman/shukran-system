@@ -34,4 +34,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Employee::class);
     }
+
+    public function instructedGroups()
+    {
+        return $this->hasMany(Group::class, 'instructor_id');
+    }
+
+    public function createdPayments()
+    {
+        return $this->hasMany(Payment::class, 'created_by');
+    }
 }

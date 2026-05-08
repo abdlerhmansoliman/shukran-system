@@ -12,4 +12,9 @@ class Level extends Model
     {
         return $this->hasMany(Customer::class);
     }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
+    }
 }

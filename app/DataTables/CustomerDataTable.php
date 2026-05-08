@@ -21,6 +21,17 @@ class CustomerDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addIndexColumn()
+            ->addColumn('select', function (Customer $customer) {
+                return '
+                    <input
+                        type="checkbox"
+                        value="'.e($customer->id).'"
+                        data-customer-checkbox
+                        class="rounded border-slate-300 text-slate-900 shadow-sm focus:ring-slate-900/10"
+                        aria-label="'.e(__('Select customer')).'"
+                    >
+                ';
+            })
             ->addColumn('customer', function (Customer $customer) {
                 $name = trim($customer->first_name.' '.$customer->last_name);
                 $initials = Str::of($name)
@@ -81,7 +92,7 @@ class CustomerDataTable extends DataTable
                         ->orWhere('second_phone_number', 'like', "%{$keyword}%");
                 });
             })
-            ->rawColumns(['customer', 'phone', 'status', 'source', 'action'])
+            ->rawColumns(['select', 'customer', 'phone', 'status', 'source', 'action'])
             ->setRowId('id');
     }
 
@@ -144,7 +155,7 @@ class CustomerDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(5, 'desc');
+            ->orderBy(6, 'desc');
     }
 
     /**
@@ -159,6 +170,13 @@ class CustomerDataTable extends DataTable
                 ->orderable(false)
                 ->width(40)
                 ->addClass('text-slate-400'),
+
+            Column::computed('select')
+                ->title('<input type="checkbox" data-customer-select-all class="rounded border-slate-300 text-slate-900 shadow-sm focus:ring-slate-900/10" aria-label="'.e(__('Select visible customers')).'">')
+                ->searchable(false)
+                ->orderable(false)
+                ->width(44)
+                ->addClass('text-center'),
 
             Column::computed('customer')
                 ->title(__('Customer'))

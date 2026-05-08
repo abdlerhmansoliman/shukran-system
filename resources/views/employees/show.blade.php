@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-    $name = $employee->user?->name ?: __('Unnamed employee');
+    $name = $employee->display_name;
     $initials = \Illuminate\Support\Str::of($name)
         ->explode(' ')
         ->filter()
@@ -12,6 +12,7 @@
     $latestPayroll = $employee->payrolls->first();
     $latestReport = $employee->monthlyReports->first();
     $adjustments = $employee->adjustments->take(5);
+    $payments = $employee->payments->sortByDesc('paid_at')->values();
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -215,6 +216,8 @@
                         </div>
                     @endif
                 </div>
+
+                @include('payments._history', ['payments' => $payments])
 
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Record Timeline') }}</p>

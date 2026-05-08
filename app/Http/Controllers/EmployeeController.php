@@ -48,6 +48,8 @@ class EmployeeController extends Controller
             'monthlyReports' => fn ($query) => $query->latest('year')->latest('month'),
             'adjustments' => fn ($query) => $query->latest('year')->latest('month'),
             'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
+            'payments' => fn ($query) => $query->latest('paid_at')->latest(),
+            'payments.creator',
         ]);
 
         return view('employees.show', compact('employee'));

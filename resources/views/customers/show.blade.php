@@ -12,6 +12,8 @@
     $totalPackageValue = $packages->sum('final_price');
     $totalPaidAmount = $packages->sum('paid_amount');
     $totalRemainingAmount = $packages->sum('remaining_amount');
+    $groupEnrollments = $customer->groupEnrollments->sortByDesc('joined_at')->values();
+    $payments = $customer->payments->sortByDesc('paid_at')->values();
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -311,6 +313,87 @@
                 </div>
 
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between gap-4">
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Groups') }}</p>
+                        <span class="text-sm font-medium text-slate-500">{{ trans_choice('{0} No groups|{1} :count group|[2,*] :count groups', $groupEnrollments->count(), ['count' => $groupEnrollments->count()]) }}</span>
+                    </div>
+
+                    @if($groupEnrollments->isEmpty())
+                        <div class="mt-5 rounded-3xl bg-slate-50 p-5">
+                            <p class="text-sm leading-7 text-slate-600">{{ __('This customer has not been added to any groups yet.') }}</p>
+                        </div>
+                    @else
+                        <div class="mt-5 space-y-4">
+                            @foreach($groupEnrollments as $enrollment)
+                                @php
+                                    $group = $enrollment->group;
+                                    $days = collect($group?->days_of_week ?? [])
+                                        ->map(fn ($day) => __(\Illuminate\Support\Str::headline($day)))
+                                        ->implode(', ');
+                                    $time = collect([
+                                        $group?->start_time ? substr((string) $group->start_time, 0, 5) : null,
+                                        $group?->end_time ? substr((string) $group->end_time, 0, 5) : null,
+                                    ])->filter()->implode(' - ');
+                                @endphp
+
+                                <div class="rounded-3xl border border-slate-200 p-5">
+                                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                @if($group)
+                                                    <a href="{{ route('groups.show', $group) }}" class="text-lg font-semibold text-slate-900">
+                                                        {{ $group->name }}
+                                                    </a>
+                                                @else
+                                                    <h3 class="text-lg font-semibold text-slate-900">{{ __('Unknown group') }}</h3>
+                                                @endif
+                                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $enrollment->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : ($enrollment->status === 'completed' ? 'bg-sky-50 text-sky-700 ring-sky-600/20' : 'bg-slate-100 text-slate-600 ring-slate-500/20') }}">
+                                                    {{ __(\Illuminate\Support\Str::headline($enrollment->status)) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Instructor') }}</p>
+                                                <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->instructor?->name ?: __('Not specified') }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
+                                                <p class="mt-2 text-sm font-semibold text-slate-900">{{ $enrollment->customerPackage?->package?->name ?: $group?->package?->name ?? __('Not specified') }}</p>
+                                            </div>
+                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Joined') }}</p>
+                                                <p class="mt-2 text-sm font-semibold text-slate-900">{{ $enrollment->joined_at?->format('M d, Y') ?: __('Not specified') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                        <div>
+                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Level') }}</p>
+                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->level?->name ?: __('Not specified') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Category') }}</p>
+                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->category?->name ?: __('Not specified') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Days') }}</p>
+                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $days ?: __('Days not specified') }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Time') }}</p>
+                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $time ?: __('Time not specified') }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Notes') }}</p>
                     <div class="mt-5 rounded-3xl bg-slate-50 p-5">
                         <p class="text-sm leading-7 text-slate-600">
@@ -321,6 +404,8 @@
             </div>
 
             <div class="space-y-6">
+                @include('payments._history', ['payments' => $payments])
+
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Account Timeline') }}</p>
                     <div class="mt-5 space-y-4">

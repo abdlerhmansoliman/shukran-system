@@ -22,7 +22,7 @@ class EmployeeDataTable extends DataTable
         return (new EloquentDataTable($query))
             ->addIndexColumn()
             ->addColumn('employee', function (Employee $employee) {
-                $name = $employee->user?->name ?: __('Unnamed employee');
+                $name = $employee->display_name;
                 $initials = Str::of($name)
                     ->explode(' ')
                     ->filter()

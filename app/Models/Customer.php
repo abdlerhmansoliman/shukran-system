@@ -67,6 +67,23 @@ class Customer extends Model
         return $this->hasMany(CustomerPackage::class);
     }
 
+    public function payments()
+    {
+        return $this->morphMany(Payment::class, 'payable');
+    }
+
+    public function groupEnrollments()
+    {
+        return $this->hasMany(GroupEnrollment::class);
+    }
+
+    public function groups()
+    {
+        return $this->belongsToMany(Group::class, 'group_enrollments')
+            ->withPivot(['customer_package_id', 'status', 'joined_at', 'left_at'])
+            ->withTimestamps();
+    }
+
     public function tester()
     {
         return $this->belongsTo(User::class, 'tester_id');

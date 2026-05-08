@@ -50,4 +50,9 @@ class CustomerPackage extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function groupEnrollments()
+    {
+        return $this->hasMany(GroupEnrollment::class);
+    }
 }

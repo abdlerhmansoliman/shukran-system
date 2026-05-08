@@ -8,7 +8,7 @@
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Employee Management') }}</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Edit Employee') }}</h1>
                 <p class="mt-2 text-sm text-slate-500">
-                    {{ __('Update account, department, compensation, and employment status for :name.', ['name' => $employee->user?->name ?: __('this employee')]) }}
+                    {{ __('Update account, department, compensation, and employment status for :name.', ['name' => $employee->display_name]) }}
                 </p>
             </div>
 
