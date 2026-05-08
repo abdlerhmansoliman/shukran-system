@@ -3,6 +3,7 @@
 @section('content')
 @php
     $name = $employee->display_name;
+    $selectedPayrollId = old('payroll_id', $latestPayroll?->id);
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -46,6 +47,24 @@
 
             <form method="POST" action="{{ route('employees.salary-payments.store', $employee) }}" class="space-y-5">
                 @csrf
+
+                <div>
+                    <label for="salary_payroll_id" class="text-sm font-semibold text-slate-700">{{ __('Payroll') }}</label>
+                    <select id="salary_payroll_id" name="payroll_id" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Choose payroll') }}</option>
+                        @foreach($payrolls as $payroll)
+                            <option value="{{ $payroll->id }}" @selected((string) $selectedPayrollId === (string) $payroll->id)>
+                                {{ __('Month') }} {{ $payroll->month }} / {{ $payroll->year }} - {{ __('Net Salary') }}: {{ number_format((float) $payroll->net_salary, 2) }} - {{ __(\Illuminate\Support\Str::headline($payroll->status)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @if($payrolls->isEmpty())
+                        <p class="mt-2 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500">
+                            {{ __('Generate payroll before recording a salary payment.') }}
+                        </p>
+                    @endif
+                    @error('payroll_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
 
                 <div>
                     <label for="salary_payment_amount" class="text-sm font-semibold text-slate-700">{{ __('Base Amount') }}</label>
@@ -114,7 +133,7 @@
                     <a href="{{ route('employees.show', $employee) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
                         {{ __('Cancel') }}
                     </a>
-                    <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                    <button type="submit" @disabled($payrolls->isEmpty()) class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400">
                         {{ __('Record Salary Payment') }}
                     </button>
                 </div>

@@ -88,7 +88,7 @@ class EmployeePayrollTest extends TestCase
             'name' => 'Bank',
             'status' => 'active',
         ]);
-        $employee->payrolls()->create([
+        $payroll = $employee->payrolls()->create([
             'month' => 5,
             'year' => 2026,
             'basic_salary' => 10000,
@@ -104,6 +104,7 @@ class EmployeePayrollTest extends TestCase
         $response = $this
             ->actingAs($admin)
             ->post(route('employees.salary-payments.store', $employee), [
+                'payroll_id' => $payroll->id,
                 'amount' => 10000,
                 'bonus_amount' => 0,
                 'deduction_amount' => 0,
@@ -121,6 +122,57 @@ class EmployeePayrollTest extends TestCase
             'month' => '5',
             'year' => 2026,
             'status' => 'paid',
+        ]);
+
+        $this->assertDatabaseHas('payments', [
+            'payable_type' => Employee::class,
+            'payable_id' => $employee->id,
+            'payroll_id' => $payroll->id,
+            'amount' => '10000.00',
+            'status' => 'completed',
+        ]);
+    }
+
+    public function test_partial_salary_payment_does_not_mark_payroll_as_paid(): void
+    {
+        $admin = User::factory()->create();
+        $employee = $this->employee();
+        $paymentMethod = PaymentMethod::query()->create([
+            'name' => 'Bank',
+            'status' => 'active',
+        ]);
+        $payroll = $employee->payrolls()->create([
+            'month' => 5,
+            'year' => 2026,
+            'basic_salary' => 10000,
+            'hour_salary' => 0,
+            'absence_deduction' => 0,
+            'overtime_amount' => 0,
+            'total_bonus' => 0,
+            'total_deductions' => 0,
+            'net_salary' => 10000,
+            'status' => 'draft',
+        ]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('employees.salary-payments.store', $employee), [
+                'payroll_id' => $payroll->id,
+                'amount' => 4000,
+                'bonus_amount' => 0,
+                'deduction_amount' => 0,
+                'paid_at' => '2026-05-08',
+                'status' => 'completed',
+                'payment_method_id' => $paymentMethod->id,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('employees.show', $employee));
+
+        $this->assertDatabaseHas('payrolls', [
+            'id' => $payroll->id,
+            'status' => 'draft',
         ]);
     }
 

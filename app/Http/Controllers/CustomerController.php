@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\CustomerDataTable;
 use App\Enums\CustomerStatus;
 use App\Enums\GroupStatus;
+use App\Http\Requests\CustomerPackageStoreRequest;
 use App\Http\Requests\CustomerPaymentStoreRequest;
 use App\Http\Requests\CustomerStoreRequest;
 use App\Http\Requests\CustomerUpdateRequest;
@@ -39,31 +40,13 @@ class CustomerController extends Controller
 
     public function store(CustomerStoreRequest $request)
     {
-        $customer = Customer::query()->create($request->customerData());
-        $packageIds = collect($request->validated('package_ids', []));
+        $customer = DB::transaction(function () use ($request) {
+            $customer = Customer::query()->create($request->customerData());
 
-        if ($packageIds->isNotEmpty()) {
-            $packages = Package::query()
-                ->whereIn('id', $packageIds)
-                ->get();
+            $this->createPackageAssignments($customer, $request->packageAssignments(), $request->user()?->id);
 
-            $customer->customerPackages()->createMany(
-                $packages->map(fn (Package $package) => [
-                    'package_id' => $package->id,
-                    'price' => $package->price,
-                    'discount' => 0,
-                    'final_price' => $package->price,
-                    'paid_amount' => 0,
-                    'remaining_amount' => $package->price,
-                    'payment_date' => null,
-                    'payment_status' => 'unpaid',
-                    'start_date' => now()->toDateString(),
-                    'end_date' => null,
-                    'status' => 'active',
-                    'created_by' => $request->user()?->id,
-                ])->all()
-            );
-        }
+            return $customer;
+        });
 
         return redirect()
             ->route('customers.show', $customer)
@@ -72,7 +55,10 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
-        $customer->load('customerPackages.package');
+        $customer->load([
+            'customerPackages' => fn ($query) => $query->with('package')->latest(),
+            'customerPackages.groupEnrollments',
+        ]);
 
         return view('customers.edit', [
             'customer' => $customer,
@@ -84,7 +70,8 @@ class CustomerController extends Controller
     {
         DB::transaction(function () use ($request, $customer) {
             $customer->update($request->customerData());
-            $this->syncPackageAssignments($request, $customer);
+
+            $this->createPackageAssignments($customer, $request->packageAssignments(), $request->user()?->id);
         });
 
         return redirect()
@@ -112,9 +99,50 @@ class CustomerController extends Controller
             'payments.creator',
             'payments.paymentMethod',
             'payments.customerPackage.package',
+            'payments.payroll',
         ]);
 
-        return view('customers.show', compact('customer'));
+        return view('customers.show', [
+            'customer' => $customer,
+            'availablePackages' => Package::query()
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    public function storePackage(CustomerPackageStoreRequest $request, Customer $customer)
+    {
+        $this->createPackageAssignments($customer, [[
+            'package_id' => $request->packageId(),
+            'quantity' => $request->quantity(),
+        ]], $request->user()?->id);
+
+        return redirect()
+            ->route('customers.show', $customer)
+            ->with('success', __('Subscription added to customer successfully.'));
+    }
+
+    public function destroySubscription(Customer $customer, CustomerPackage $customerPackage)
+    {
+        abort_unless((int) $customerPackage->customer_id === (int) $customer->id, 404);
+
+        $hasActiveEnrollment = $customerPackage->groupEnrollments()
+            ->where('status', 'active')
+            ->exists();
+
+        if ($hasActiveEnrollment) {
+            return back()->with('error', __('This subscription cannot be removed while it is linked to an active group.'));
+        }
+
+        if ($customerPackage->status !== 'cancelled') {
+            $customerPackage->update([
+                'status' => 'cancelled',
+                'end_date' => now()->toDateString(),
+            ]);
+        }
+
+        return back()->with('success', __('Subscription removed from customer successfully.'));
     }
 
     public function createPayment(Customer $customer)
@@ -147,7 +175,7 @@ class CustomerController extends Controller
 
             if ((float) $request->validated('amount') > (float) $customerPackage->remaining_amount) {
                 throw ValidationException::withMessages([
-                    'amount' => __('The payment amount cannot be greater than the remaining package balance.'),
+                    'amount' => __('The payment amount cannot be greater than the remaining subscription balance.'),
                 ]);
             }
 
@@ -194,72 +222,50 @@ class CustomerController extends Controller
         ];
     }
 
-    private function syncPackageAssignments(CustomerUpdateRequest $request, Customer $customer): void
+    /**
+     * @param  array<int, array{package_id: int, quantity: int}>  $assignments
+     */
+    private function createPackageAssignments(Customer $customer, array $assignments, ?int $userId): void
     {
-        $validated = $request->validated();
-
-        if (! array_key_exists('package_ids', $validated)) {
-            return;
-        }
-
-        $selectedPackageIds = collect($validated['package_ids'] ?? [])
-            ->map(fn ($packageId) => (int) $packageId)
-            ->unique()
-            ->values();
-
-        $activeAssignments = $customer->customerPackages()
-            ->where('status', 'active')
-            ->latest()
-            ->get();
-
-        $activeAssignmentsByPackage = $activeAssignments->groupBy('package_id');
-
-        foreach ($activeAssignments as $assignment) {
-            $isSelected = $selectedPackageIds->contains((int) $assignment->package_id);
-            $isFirstActiveForPackage = $activeAssignmentsByPackage->get($assignment->package_id)?->first()?->is($assignment);
-
-            if ($isSelected && $isFirstActiveForPackage) {
-                continue;
-            }
-
-            $assignment->update([
-                'status' => $selectedPackageIds->isEmpty() && (float) $assignment->paid_amount <= 0 ? 'cancelled' : 'completed',
-                'end_date' => now()->toDateString(),
-            ]);
-        }
-
-        $existingActivePackageIds = $customer->customerPackages()
-            ->where('status', 'active')
-            ->pluck('package_id')
-            ->map(fn ($packageId) => (int) $packageId)
-            ->unique();
-
-        $newPackageIds = $selectedPackageIds->diff($existingActivePackageIds)->values();
-
-        if ($newPackageIds->isEmpty()) {
+        if ($assignments === []) {
             return;
         }
 
         $packages = Package::query()
-            ->whereIn('id', $newPackageIds)
-            ->get();
+            ->where('status', 'active')
+            ->whereIn('id', collect($assignments)->pluck('package_id')->unique())
+            ->get()
+            ->keyBy('id');
 
-        $customer->customerPackages()->createMany(
-            $packages->map(fn (Package $package) => [
-                'package_id' => $package->id,
-                'price' => $package->price,
-                'discount' => 0,
-                'final_price' => $package->price,
-                'paid_amount' => 0,
-                'remaining_amount' => $package->price,
-                'payment_date' => null,
-                'payment_status' => 'unpaid',
-                'start_date' => now()->toDateString(),
-                'end_date' => null,
-                'status' => 'active',
-                'created_by' => $request->user()?->id,
-            ])->all()
-        );
+        foreach ($assignments as $assignment) {
+            $package = $packages->get($assignment['package_id']);
+
+            if (! $package) {
+                continue;
+            }
+
+            for ($count = 0; $count < $assignment['quantity']; $count++) {
+                $this->createPackageAssignment($customer, $package, $userId);
+            }
+        }
+    }
+
+    private function createPackageAssignment(Customer $customer, Package $package, ?int $userId): void
+    {
+        $customer->customerPackages()->create([
+            'package_id' => $package->id,
+            'price' => $package->price,
+            'discount' => 0,
+            'final_price' => $package->price,
+            'paid_amount' => 0,
+            'remaining_amount' => $package->price,
+            'payment_date' => null,
+            'payment_status' => 'unpaid',
+            'start_date' => now()->toDateString(),
+            'end_date' => null,
+            'status' => 'active',
+            'created_by' => $userId,
+        ]);
     }
 
     private function applyCustomerPackagePayment(CustomerPackage $customerPackage, float $amount, ?string $paidAt): void

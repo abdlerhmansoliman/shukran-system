@@ -55,4 +55,9 @@ class CustomerPackage extends Model
     {
         return $this->hasMany(GroupEnrollment::class);
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

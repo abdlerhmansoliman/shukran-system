@@ -12,9 +12,11 @@ use App\Http\Requests\EmployeeUpdateRequest;
 use App\Models\Department;
 use App\Models\Employee;
 use App\Models\PaymentMethod;
+use App\Models\Payroll;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
 {
@@ -55,6 +57,7 @@ class EmployeeController extends Controller
             'payments' => fn ($query) => $query->latest('paid_at')->latest(),
             'payments.creator',
             'payments.paymentMethod',
+            'payments.payroll',
         ]);
 
         return view('employees.show', compact('employee'));
@@ -65,12 +68,18 @@ class EmployeeController extends Controller
         $employee->load([
             'user',
             'department',
-            'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
+            'payrolls' => fn ($query) => $query
+                ->where('status', 'draft')
+                ->latest('year')
+                ->latest('month'),
         ]);
+
+        $payrolls = $employee->payrolls;
 
         return view('employees.salary-payments.create', [
             'employee' => $employee,
-            'latestPayroll' => $employee->payrolls->first(),
+            'payrolls' => $payrolls,
+            'latestPayroll' => $payrolls->first(),
             'paymentMethods' => PaymentMethod::query()
                 ->where('status', 'active')
                 ->orderBy('name')
@@ -114,17 +123,24 @@ class EmployeeController extends Controller
     public function storeSalaryPayment(EmployeeSalaryPaymentStoreRequest $request, Employee $employee)
     {
         DB::transaction(function () use ($request, $employee) {
-            $employee->payments()->create($request->paymentData());
-            $paidAt = Carbon::parse($request->validated('paid_at'));
+            $payroll = Payroll::query()
+                ->where('employee_id', $employee->id)
+                ->lockForUpdate()
+                ->findOrFail($request->payrollId());
 
-            if ($request->validated('status') === 'completed') {
-                $employee->payrolls()
-                    ->where('month', $paidAt->month)
-                    ->where('year', $paidAt->year)
-                    ->latest()
-                    ->first()
-                    ?->update(['status' => 'paid']);
+            if ($payroll->status === 'paid') {
+                throw ValidationException::withMessages([
+                    'payroll_id' => __('This payroll is already paid.'),
+                ]);
             }
+
+            $payment = $employee->payments()->create($request->paymentData());
+
+            if ($payment->status === 'completed') {
+                $this->syncPayrollPaymentStatus($payroll);
+            }
+
+            $paidAt = Carbon::parse($request->validated('paid_at'));
 
             if ($request->bonusAmount() > 0) {
                 $employee->adjustments()->create([
@@ -178,7 +194,10 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-        $employee->delete();
+        DB::transaction(function () use ($employee) {
+            $employee->user()->update(['is_active' => false]);
+            $employee->delete();
+        });
 
         return redirect()
             ->route('employees.index')
@@ -223,5 +242,16 @@ class EmployeeController extends Controller
             'amount' => $amount,
             'notes' => $notes,
         ]);
+    }
+
+    private function syncPayrollPaymentStatus(Payroll $payroll): void
+    {
+        $completedPayments = $payroll->payments()
+            ->where('status', 'completed')
+            ->sum('amount');
+
+        if ((float) $completedPayments >= (float) $payroll->net_salary) {
+            $payroll->update(['status' => 'paid']);
+        }
     }
 }

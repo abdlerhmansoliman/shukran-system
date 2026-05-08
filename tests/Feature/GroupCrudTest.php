@@ -91,6 +91,17 @@ class GroupCrudTest extends TestCase
             'status' => 'active',
             'created_by' => $admin->id,
         ]);
+        $secondAssignment = $secondCustomer->customerPackages()->create([
+            'package_id' => $package->id,
+            'price' => 1200,
+            'discount' => 0,
+            'final_price' => 1200,
+            'paid_amount' => 0,
+            'remaining_amount' => 1200,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
 
         $response = $this
             ->actingAs($admin)
@@ -113,8 +124,42 @@ class GroupCrudTest extends TestCase
         $this->assertDatabaseHas('group_enrollments', [
             'group_id' => $group->id,
             'customer_id' => $secondCustomer->id,
-            'customer_package_id' => null,
+            'customer_package_id' => $secondAssignment->id,
             'status' => 'active',
+        ]);
+    }
+
+    public function test_customer_without_group_package_cannot_be_added_to_packaged_group(): void
+    {
+        $admin = User::factory()->create();
+        $package = Package::query()->create([
+            'name' => 'Starter',
+            'levels_count' => 12,
+            'price' => 1200,
+            'status' => 'active',
+        ]);
+        $group = Group::query()->create([
+            'name' => 'Saturday A',
+            'package_id' => $package->id,
+            'status' => 'active',
+        ]);
+        $customer = Customer::factory()->create(['status' => 'active']);
+
+        $response = $this
+            ->actingAs($admin)
+            ->from(route('customers.index'))
+            ->post(route('customers.group-enrollments.store'), [
+                'group_id' => $group->id,
+                'customer_ids' => [$customer->id],
+            ]);
+
+        $response
+            ->assertRedirect(route('customers.index'))
+            ->assertSessionHasErrors('customer_ids');
+
+        $this->assertDatabaseMissing('group_enrollments', [
+            'group_id' => $group->id,
+            'customer_id' => $customer->id,
         ]);
     }
 
@@ -141,6 +186,59 @@ class GroupCrudTest extends TestCase
             'group_id' => $group->id,
             'customer_id' => $customer->id,
             'status' => 'active',
+        ]);
+    }
+
+    public function test_inactive_customers_cannot_be_bulk_added_to_group_from_customer_table(): void
+    {
+        $admin = User::factory()->create();
+        $group = Group::query()->create([
+            'name' => 'Saturday A',
+            'status' => 'active',
+        ]);
+        $inactiveCustomer = Customer::factory()->create(['status' => 'inactive']);
+
+        $response = $this
+            ->actingAs($admin)
+            ->from(route('customers.index'))
+            ->post(route('customers.group-enrollments.store'), [
+                'group_id' => $group->id,
+                'customer_ids' => [$inactiveCustomer->id],
+            ]);
+
+        $response
+            ->assertRedirect(route('customers.index'))
+            ->assertSessionHasErrors('customer_ids.0');
+
+        $this->assertDatabaseMissing('group_enrollments', [
+            'group_id' => $group->id,
+            'customer_id' => $inactiveCustomer->id,
+        ]);
+    }
+
+    public function test_inactive_customers_cannot_be_added_from_group_profile(): void
+    {
+        $admin = User::factory()->create();
+        $group = Group::query()->create([
+            'name' => 'Saturday A',
+            'status' => 'planned',
+        ]);
+        $inactiveCustomer = Customer::factory()->create(['status' => 'inactive']);
+
+        $response = $this
+            ->actingAs($admin)
+            ->from(route('groups.show', $group))
+            ->post(route('groups.customers.store', $group), [
+                'customer_ids' => [$inactiveCustomer->id],
+            ]);
+
+        $response
+            ->assertRedirect(route('groups.show', $group))
+            ->assertSessionHasErrors('customer_ids.0');
+
+        $this->assertDatabaseMissing('group_enrollments', [
+            'group_id' => $group->id,
+            'customer_id' => $inactiveCustomer->id,
         ]);
     }
 }

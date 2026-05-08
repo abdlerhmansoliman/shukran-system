@@ -10,19 +10,35 @@ class CustomerUpdateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        if (! $this->has('package_ids') && $this->has('package_id')) {
-            $this->merge([
-                'package_ids' => $this->filled('package_id') ? [$this->input('package_id')] : [],
-            ]);
+        $legacyPackageIds = collect($this->input('package_ids', []))->filter()->values();
 
-            return;
+        $assignments = collect($this->input('package_assignments', []))
+            ->filter(fn ($assignment) => is_array($assignment) && filled($assignment['package_id'] ?? null))
+            ->map(fn ($assignment) => [
+                'package_id' => (int) $assignment['package_id'],
+                'quantity' => filled($assignment['quantity'] ?? null) ? $assignment['quantity'] : 1,
+            ])
+            ->values()
+            ->all();
+
+        if ($assignments === [] && $legacyPackageIds->isNotEmpty()) {
+            $assignments = $legacyPackageIds
+                ->map(fn ($packageId) => [
+                    'package_id' => (int) $packageId,
+                    'quantity' => 1,
+                ])
+                ->all();
+        }
+
+        if ($assignments === [] && $this->filled('package_id')) {
+            $assignments[] = [
+                'package_id' => (int) $this->input('package_id'),
+                'quantity' => 1,
+            ];
         }
 
         $this->merge([
-            'package_ids' => collect($this->input('package_ids', []))
-                ->filter()
-                ->values()
-                ->all(),
+            'package_assignments' => $assignments,
         ]);
     }
 
@@ -54,8 +70,9 @@ class CustomerUpdateRequest extends FormRequest
             'tester_id' => ['nullable', 'exists:users,id'],
             'old_instructor_id' => ['nullable', 'exists:users,id'],
             'package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
-            'package_ids' => ['nullable', 'array'],
-            'package_ids.*' => ['integer', 'distinct', Rule::exists('packages', 'id')->where('status', 'active')],
+            'package_assignments' => ['nullable', 'array'],
+            'package_assignments.*.package_id' => ['required', Rule::exists('packages', 'id')->where('status', 'active')],
+            'package_assignments.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
             'age' => ['nullable', 'integer', 'min:0', 'max:120'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:255'],
@@ -72,8 +89,21 @@ class CustomerUpdateRequest extends FormRequest
     public function customerData(): array
     {
         $validated = $this->validated();
-        unset($validated['package_id'], $validated['package_ids']);
+        unset($validated['package_id'], $validated['package_assignments']);
 
         return $validated;
+    }
+
+    /**
+     * @return array<int, array{package_id: int, quantity: int}>
+     */
+    public function packageAssignments(): array
+    {
+        return collect($this->validated('package_assignments', []))
+            ->map(fn (array $assignment) => [
+                'package_id' => (int) $assignment['package_id'],
+                'quantity' => (int) $assignment['quantity'],
+            ])
+            ->all();
     }
 }

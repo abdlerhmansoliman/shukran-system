@@ -100,6 +100,7 @@ class EmployeeCrudTest extends TestCase
 
         $this->assertSame('Updated Employee', $employeeUser->name);
         $this->assertSame('updated.employee@example.com', $employeeUser->email);
+        $this->assertFalse($employeeUser->is_active);
         $this->assertTrue(Hash::check('old-password', $employeeUser->password));
         $this->assertSame($newDepartment->id, $employee->department_id);
         $this->assertSame('Senior Instructor', $employee->job_title);
@@ -107,7 +108,7 @@ class EmployeeCrudTest extends TestCase
         $this->assertSame('inactive', $employee->status);
     }
 
-    public function test_employee_can_be_deleted_without_deleting_user_account(): void
+    public function test_employee_can_be_deleted_without_deleting_user_account_or_leaving_login_active(): void
     {
         $admin = User::factory()->create();
         $department = Department::query()->create(['name' => 'Finance']);
@@ -129,6 +130,9 @@ class EmployeeCrudTest extends TestCase
             ->assertRedirect(route('employees.index'));
 
         $this->assertSoftDeleted('employees', ['id' => $employee->id]);
-        $this->assertDatabaseHas('users', ['id' => $employeeUser->id]);
+        $this->assertDatabaseHas('users', [
+            'id' => $employeeUser->id,
+            'is_active' => false,
+        ]);
     }
 }

@@ -54,6 +54,7 @@ class EmployeeStoreRequest extends FormRequest
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'is_active' => $validated['status'] === EmployeeStatus::Active->value,
         ];
     }
 

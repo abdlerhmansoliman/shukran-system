@@ -1,9 +1,9 @@
 <?php
 
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GroupController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
@@ -30,6 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::get('customers/create', [CustomerController::class, 'create'])->name('customers.create');
     Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::post('customers/group-enrollments', [GroupController::class, 'bulkEnrollCustomers'])->name('customers.group-enrollments.store');
+    Route::post('customers/{customer}/packages', [CustomerController::class, 'storePackage'])->name('customers.packages.store');
+    Route::delete('customers/{customer}/subscriptions/{customerPackage}', [CustomerController::class, 'destroySubscription'])->name('customers.subscriptions.destroy');
     Route::get('customers/{customer}/payments/create', [CustomerController::class, 'createPayment'])->name('customers.payments.create');
     Route::post('customers/{customer}/payments', [CustomerController::class, 'storePayment'])->name('customers.payments.store');
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');

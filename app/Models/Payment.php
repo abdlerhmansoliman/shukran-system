@@ -18,6 +18,7 @@ class Payment extends Model
         'status',
         'payment_method_id',
         'customer_package_id',
+        'payroll_id',
         'method',
         'reference',
         'paid_at',
@@ -51,5 +52,10 @@ class Payment extends Model
     public function customerPackage()
     {
         return $this->belongsTo(CustomerPackage::class);
+    }
+
+    public function payroll()
+    {
+        return $this->belongsTo(Payroll::class);
     }
 }

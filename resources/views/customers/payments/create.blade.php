@@ -37,7 +37,7 @@
                     <p class="mt-2 text-sm font-semibold text-slate-900">{{ $fullName ?: __('Unnamed customer') }}</p>
                 </div>
                 <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Active Packages') }}</p>
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Open Subscriptions') }}</p>
                     <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackages->count() }}</p>
                 </div>
                 <div class="rounded-2xl bg-slate-50 px-4 py-3">
@@ -48,14 +48,14 @@
 
             @if($customerPackages->isEmpty())
                 <div class="rounded-3xl bg-slate-50 p-5">
-                    <p class="text-sm leading-7 text-slate-600">{{ __('This customer does not have an active package with a remaining balance.') }}</p>
+                    <p class="text-sm leading-7 text-slate-600">{{ __('This customer does not have an active subscription with a remaining balance.') }}</p>
                 </div>
             @else
                 <form method="POST" action="{{ route('customers.payments.store', $customer) }}" class="space-y-5">
                     @csrf
 
                     <div>
-                        <label for="customer_package_id" class="text-sm font-semibold text-slate-700">{{ __('Package') }}</label>
+                        <label for="customer_package_id" class="text-sm font-semibold text-slate-700">{{ __('Subscription') }}</label>
                         <select id="customer_package_id" name="customer_package_id" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                             @foreach($customerPackages as $customerPackage)
                                 <option

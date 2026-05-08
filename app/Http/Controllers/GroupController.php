@@ -150,6 +150,13 @@ class GroupController extends Controller
         return Customer::query()
             ->where('status', 'active')
             ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('group_id', $group->id))
+            ->when($group->package_id, function ($query) use ($group) {
+                $query->whereHas('customerPackages', function ($builder) use ($group) {
+                    $builder
+                        ->where('package_id', $group->package_id)
+                        ->where('status', 'active');
+                });
+            })
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get();

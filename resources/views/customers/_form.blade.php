@@ -1,15 +1,18 @@
 @php
     $statusValue = old('status', $customer?->status ?? \App\Enums\CustomerStatus::Inactive->value);
     $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m-d'));
-    $selectedPackageIds = collect(old(
-        'package_ids',
-        $customer
-            ? $customer->customerPackages?->where('status', 'active')->pluck('package_id')->all()
-            : []
-    ))
-        ->map(fn ($packageId) => (string) $packageId)
-        ->values()
-        ->all();
+    $packageAssignmentRows = collect(old('package_assignments', [['package_id' => '', 'quantity' => 1]]))
+        ->map(fn ($assignment) => [
+            'package_id' => $assignment['package_id'] ?? '',
+            'quantity' => $assignment['quantity'] ?? 1,
+        ])
+        ->values();
+
+    if ($packageAssignmentRows->isEmpty()) {
+        $packageAssignmentRows = collect([['package_id' => '', 'quantity' => 1]]);
+    }
+
+    $currentSubscriptions = $customer?->customerPackages?->sortByDesc('created_at')->values() ?? collect();
 @endphp
 
 <div class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
@@ -160,39 +163,119 @@
         </div>
 
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package') }}</p>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Subscriptions') }}</p>
+                    <p class="mt-2 text-sm text-slate-500">{{ __('Add one or more subscriptions. Each subscription is created from a package template.') }}</p>
+                </div>
+                @if($customer)
+                    <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                        {{ trans_choice('{0} No active subscriptions|{1} :count active subscription|[2,*] :count active subscriptions', $customer->customerPackages?->where('status', 'active')->count() ?? 0, ['count' => $customer->customerPackages?->where('status', 'active')->count() ?? 0]) }}
+                    </span>
+                @endif
+            </div>
 
-            <div class="mt-6">
-                <p class="text-sm font-semibold text-slate-700">{{ __('Packages') }}</p>
-                <p class="mt-2 text-sm text-slate-500">{{ __('Choose one or more active packages for this customer.') }}</p>
+            @if($customer)
+                <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200">
+                    <div class="grid grid-cols-[minmax(0,1fr)_6rem_7rem_7rem] gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 max-lg:hidden">
+                        <span>{{ __('Subscription') }}</span>
+                        <span>{{ __('Status') }}</span>
+                        <span>{{ __('Remaining') }}</span>
+                        <span class="text-right">{{ __('Action') }}</span>
+                    </div>
 
-                <div class="mt-4 space-y-3">
-                    @forelse($packages as $package)
-                        <label class="flex items-start gap-3 rounded-2xl border border-slate-200 px-4 py-3 transition hover:border-slate-300 hover:bg-slate-50">
-                            <input
-                                type="checkbox"
-                                name="package_ids[]"
-                                value="{{ $package->id }}"
-                                @checked(in_array((string) $package->id, $selectedPackageIds, true))
-                                class="mt-1 rounded border-slate-300 text-slate-900 shadow-sm focus:ring-slate-900/10"
-                            >
-                            <span class="block">
-                                <span class="block text-sm font-semibold text-slate-900">{{ $package->name }}</span>
-                                <span class="mt-1 block text-sm text-slate-500">
-                                    {{ __('Levels: :count', ['count' => $package->levels_count]) }} - {{ number_format((float) $package->price, 2) }}
+                    @forelse($currentSubscriptions as $subscription)
+                        @php
+                            $hasActiveEnrollment = $subscription->groupEnrollments?->contains('status', 'active') ?? false;
+                            $statusClasses = match ($subscription->status) {
+                                'active' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+                                'completed' => 'bg-sky-50 text-sky-700 ring-sky-600/20',
+                                default => 'bg-rose-50 text-rose-700 ring-rose-600/20',
+                            };
+                        @endphp
+
+                        <div class="grid gap-3 border-t border-slate-200 px-4 py-3 text-sm first:border-t-0 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_7rem] lg:items-center">
+                            <div>
+                                <p class="font-semibold text-slate-900">{{ $subscription->package?->name ?: __('Unknown package') }}</p>
+                                <p class="mt-1 text-xs text-slate-500">
+                                    {{ __('Started') }}: {{ $subscription->start_date?->format('M d, Y') ?: __('Not scheduled') }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $statusClasses }}">
+                                    {{ __(\Illuminate\Support\Str::headline($subscription->status)) }}
                                 </span>
-                            </span>
-                        </label>
+                            </div>
+
+                            <p class="font-semibold text-slate-900">{{ number_format((float) $subscription->remaining_amount, 2) }}</p>
+
+                            <div class="flex justify-start lg:justify-end">
+                                @if($subscription->status === 'active')
+                                    <button
+                                        type="submit"
+                                        form="remove_subscription_{{ $subscription->id }}"
+                                        @disabled($hasActiveEnrollment)
+                                        onclick="return confirm(@js(__('Remove this subscription from the customer?')))"
+                                        class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
+                                    >
+                                        {{ __('Remove') }}
+                                    </button>
+                                @else
+                                    <span class="text-xs font-semibold text-slate-400">{{ __('Closed') }}</span>
+                                @endif
+                            </div>
+
+                            @if($hasActiveEnrollment)
+                                <p class="text-xs text-slate-500 lg:col-span-4">{{ __('This subscription is linked to an active group.') }}</p>
+                            @endif
+                        </div>
                     @empty
-                        <p class="rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500">
-                            {{ __('No active packages are available right now.') }}
-                        </p>
+                        <p class="px-4 py-4 text-sm text-slate-500">{{ __('This customer does not have any subscriptions yet.') }}</p>
                     @endforelse
                 </div>
+            @endif
 
-                @error('package_ids')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                @error('package_ids.*')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-            </div>
+            @if($packages->isEmpty())
+                <p class="mt-5 rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-500">
+                    {{ __('No active packages are available right now.') }}
+                </p>
+            @else
+                <div class="mt-5 space-y-3" data-package-assignment-list>
+                    @foreach($packageAssignmentRows as $index => $assignment)
+                        <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto] sm:items-end" data-package-assignment-row>
+                            <div>
+                                <label for="package_assignments_{{ $index }}_package_id" class="text-sm font-semibold text-slate-700">{{ __('Package Template') }}</label>
+                                <select id="package_assignments_{{ $index }}_package_id" name="package_assignments[{{ $index }}][package_id]" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                    <option value="">{{ __('No package') }}</option>
+                                    @foreach($packages as $package)
+                                        <option value="{{ $package->id }}" @selected((string) $assignment['package_id'] === (string) $package->id)>
+                                            {{ $package->name }} - {{ __('Levels: :count', ['count' => $package->levels_count]) }} - {{ number_format((float) $package->price, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="package_assignments_{{ $index }}_quantity" class="text-sm font-semibold text-slate-700">{{ __('Quantity') }}</label>
+                                <input id="package_assignments_{{ $index }}_quantity" name="package_assignments[{{ $index }}][quantity]" type="number" min="1" max="50" value="{{ $assignment['quantity'] }}" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                            </div>
+
+                            <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100" data-package-assignment-remove>
+                                {{ __('Remove') }}
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+
+                <button type="button" class="mt-4 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" data-package-assignment-add>
+                    {{ __('Add another package') }}
+                </button>
+
+                @error('package_assignments')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @error('package_assignments.*.package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @error('package_assignments.*.quantity')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+            @endif
         </div>
 
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -239,3 +322,91 @@
         {{ $submitLabel }}
     </button>
 </div>
+
+@if($customer)
+    @push('scripts')
+        @foreach($currentSubscriptions as $subscription)
+            @if($subscription->status === 'active')
+                <form id="remove_subscription_{{ $subscription->id }}" method="POST" action="{{ route('customers.subscriptions.destroy', [$customer, $subscription]) }}" class="hidden">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endif
+        @endforeach
+    @endpush
+@endif
+
+@once
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('[data-package-assignment-list]').forEach((list) => {
+                    const addButton = list.parentElement.querySelector('[data-package-assignment-add]');
+                    const quantityLabel = @js(__('Quantity'));
+
+                    const refreshRows = () => {
+                        list.querySelectorAll('[data-package-assignment-row]').forEach((row, index) => {
+                            row.querySelectorAll('select, input').forEach((field) => {
+                                const key = field.name.includes('[quantity]') ? 'quantity' : 'package_id';
+                                field.name = `package_assignments[${index}][${key}]`;
+                                field.id = `package_assignments_${index}_${key}`;
+                            });
+
+                            row.querySelectorAll('label').forEach((label) => {
+                                const field = label.textContent.trim() === quantityLabel ? 'quantity' : 'package_id';
+                                label.setAttribute('for', `package_assignments_${index}_${field}`);
+                            });
+                        });
+                    };
+
+                    const clearRow = (row) => {
+                        const select = row.querySelector('select');
+                        const quantity = row.querySelector('input[type="number"]');
+
+                        if (select) {
+                            select.value = '';
+                        }
+
+                        if (quantity) {
+                            quantity.value = '1';
+                        }
+                    };
+
+                    list.addEventListener('click', (event) => {
+                        const removeButton = event.target.closest('[data-package-assignment-remove]');
+
+                        if (! removeButton) {
+                            return;
+                        }
+
+                        const rows = list.querySelectorAll('[data-package-assignment-row]');
+                        const row = removeButton.closest('[data-package-assignment-row]');
+
+                        if (rows.length === 1) {
+                            clearRow(row);
+                        } else {
+                            row.remove();
+                        }
+
+                        refreshRows();
+                    });
+
+                    addButton?.addEventListener('click', () => {
+                        const firstRow = list.querySelector('[data-package-assignment-row]');
+
+                        if (! firstRow) {
+                            return;
+                        }
+
+                        const row = firstRow.cloneNode(true);
+                        clearRow(row);
+                        list.appendChild(row);
+                        refreshRows();
+                    });
+
+                    refreshRows();
+                });
+            });
+        </script>
+    @endpush
+@endonce

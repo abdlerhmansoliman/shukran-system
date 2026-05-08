@@ -25,6 +25,7 @@ class UserSeeder extends Seeder
             ], [
                 'name' => $user['name'],
                 'password' => bcrypt('12345678'),
+                'is_active' => true,
             ]);
         }
     }

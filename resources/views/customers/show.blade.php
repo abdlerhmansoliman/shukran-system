@@ -25,7 +25,7 @@
                     {{ $fullName ?: __('Unnamed customer') }}
                 </h1>
                 <p class="mt-2 text-sm text-slate-500">
-                    {{ __('View personal details, enrollment context, and package history for this customer.') }}
+                    {{ __('View personal details, enrollment context, and subscription history for this customer.') }}
                 </p>
             </div>
 
@@ -54,6 +54,12 @@
         @if(session('success'))
             <div class="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-700">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm font-medium text-rose-700">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -100,11 +106,11 @@
                                 <p class="mt-1">#{{ $customer->id }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                                <p class="font-medium text-slate-700">{{ __('Active Packages') }}</p>
+                                <p class="font-medium text-slate-700">{{ __('Active Subscriptions') }}</p>
                                 <p class="mt-1">{{ $activePackagesCount }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                                <p class="font-medium text-slate-700">{{ __('Total Package Value') }}</p>
+                                <p class="font-medium text-slate-700">{{ __('Total Subscription Value') }}</p>
                                 <p class="mt-1">{{ number_format((float) $totalPackageValue, 2) }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
@@ -234,86 +240,67 @@
 
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between gap-4">
-                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Packages') }}</p>
-                        <span class="text-sm font-medium text-slate-500">{{ trans_choice('{0} No packages|{1} :count package|[2,*] :count packages', $packages->count(), ['count' => $packages->count()]) }}</span>
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Subscriptions') }}</p>
+                        <span class="text-sm font-medium text-slate-500">{{ trans_choice('{0} No subscriptions|{1} :count subscription|[2,*] :count subscriptions', $packages->count(), ['count' => $packages->count()]) }}</span>
                     </div>
 
                     @if($packages->isEmpty())
                         <div class="mt-5 rounded-3xl bg-slate-50 p-5">
-                            <p class="text-sm leading-7 text-slate-600">{{ __('This customer has not been assigned any packages yet.') }}</p>
+                            <p class="text-sm leading-7 text-slate-600">{{ __('This customer does not have any subscriptions yet.') }}</p>
                         </div>
                     @else
-                        <div class="mt-5 space-y-4">
+                        <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200">
+                            <div class="grid grid-cols-[minmax(0,1fr)_6rem_7rem_7rem_7rem] gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 max-lg:hidden">
+                                <span>{{ __('Subscription') }}</span>
+                                <span>{{ __('Status') }}</span>
+                                <span>{{ __('Paid') }}</span>
+                                <span>{{ __('Remaining') }}</span>
+                                <span>{{ __('Started') }}</span>
+                            </div>
+
                             @foreach($packages as $customerPackage)
-                                <div class="rounded-3xl border border-slate-200 p-5">
-                                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                        <div>
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <h3 class="text-lg font-semibold text-slate-900">
-                                                    {{ $customerPackage->package?->name ?: __('Unknown package') }}
-                                                </h3>
-                                                <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customerPackage->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : ($customerPackage->status === 'completed' ? 'bg-sky-50 text-sky-700 ring-sky-600/20' : 'bg-rose-50 text-rose-700 ring-rose-600/20') }}">
-                                                    {{ __(\Illuminate\Support\Str::headline($customerPackage->status)) }}
-                                                </span>
-                                            </div>
+                                @php
+                                    $statusClasses = match ($customerPackage->status) {
+                                        'active' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+                                        'completed' => 'bg-sky-50 text-sky-700 ring-sky-600/20',
+                                        default => 'bg-rose-50 text-rose-700 ring-rose-600/20',
+                                    };
+                                @endphp
 
-                                            <p class="mt-2 text-sm text-slate-500">
-                                                {{ __('Levels: :count', ['count' => $customerPackage->package?->levels_count ?? '—']) }}
-                                            </p>
-                                        </div>
-
-                                        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Price') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->price, 2) }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Discount') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->discount, 2) }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Final Price') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->final_price, 2) }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Paid') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->paid_amount, 2) }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Remaining') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customerPackage->remaining_amount, 2) }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Payment Status') }}</p>
-                                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customerPackage->payment_status ? __(\Illuminate\Support\Str::headline($customerPackage->payment_status)) : __('Not specified') }}</p>
-                                            </div>
-                                        </div>
+                                <div class="grid gap-3 border-t border-slate-200 px-4 py-3 text-sm first:border-t-0 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_7rem_7rem] lg:items-center">
+                                    <div>
+                                        <p class="font-semibold text-slate-900">{{ $customerPackage->package?->name ?: __('Unknown package') }}</p>
+                                        <p class="mt-1 text-xs text-slate-500">{{ __('Levels: :count', ['count' => $customerPackage->package?->levels_count ?? '—']) }}</p>
                                     </div>
 
-                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Start Date') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->start_date ? \Illuminate\Support\Carbon::parse($customerPackage->start_date)->format('M d, Y') : __('Not scheduled') }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('End Date') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->end_date ? \Illuminate\Support\Carbon::parse($customerPackage->end_date)->format('M d, Y') : __('Open-ended') }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Payment Date') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->payment_date ? \Illuminate\Support\Carbon::parse($customerPackage->payment_date)->format('M d, Y') : __('Not paid yet') }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Assigned By') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->creator?->name ?: __('System / Unknown') }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Assigned At') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $customerPackage->created_at?->format('M d, Y h:i A') ?: __('Not specified') }}</p>
-                                        </div>
+                                    <div>
+                                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $statusClasses }}">
+                                            {{ __(\Illuminate\Support\Str::headline($customerPackage->status)) }}
+                                        </span>
                                     </div>
+
+                                    <p class="font-semibold text-slate-900">
+                                        <span class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400 lg:hidden">{{ __('Paid') }}: </span>
+                                        {{ number_format((float) $customerPackage->paid_amount, 2) }}
+                                    </p>
+
+                                    <p class="font-semibold text-slate-900">
+                                        <span class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400 lg:hidden">{{ __('Remaining') }}: </span>
+                                        {{ number_format((float) $customerPackage->remaining_amount, 2) }}
+                                    </p>
+
+                                    <p class="font-semibold text-slate-900">
+                                        <span class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400 lg:hidden">{{ __('Started') }}: </span>
+                                        {{ $customerPackage->start_date?->format('M d, Y') ?: __('Not scheduled') }}
+                                    </p>
                                 </div>
                             @endforeach
+                        </div>
+
+                        <div class="mt-4 flex justify-end">
+                            <a href="{{ route('customers.edit', $customer) }}" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                                {{ __('Manage Subscriptions') }}
+                            </a>
                         </div>
                     @endif
                 </div>
@@ -365,7 +352,7 @@
                                                 <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->instructor?->name ?: __('Not specified') }}</p>
                                             </div>
                                             <div class="rounded-2xl bg-slate-50 px-4 py-3">
-                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
+                                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package Template') }}</p>
                                                 <p class="mt-2 text-sm font-semibold text-slate-900">{{ $enrollment->customerPackage?->package?->name ?: $group?->package?->name ?? __('Not specified') }}</p>
                                             </div>
                                             <div class="rounded-2xl bg-slate-50 px-4 py-3">

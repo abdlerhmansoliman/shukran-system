@@ -45,8 +45,14 @@
                         </div>
                         @if($payment->customerPackage)
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Subscription') }}</p>
                                 <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->customerPackage->package?->name ?: __('Unknown package') }}</p>
+                            </div>
+                        @endif
+                        @if($payment->payroll)
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Payroll') }}</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-900">{{ __('Month') }} {{ $payment->payroll->month }} / {{ $payment->payroll->year }}</p>
                             </div>
                         @endif
                         <div>

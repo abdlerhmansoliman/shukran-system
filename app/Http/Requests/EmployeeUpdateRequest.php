@@ -48,6 +48,7 @@ class EmployeeUpdateRequest extends FormRequest
         $data = [
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'is_active' => $validated['status'] === EmployeeStatus::Active->value,
         ];
 
         if (! empty($validated['password'])) {

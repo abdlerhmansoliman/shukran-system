@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Group;
 use App\Models\Package;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -13,16 +14,16 @@ class CustomerPackageAssignmentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_packages_are_created_with_customer_inside_customer_history(): void
+    public function test_multiple_packages_are_created_with_customer_inside_customer_history(): void
     {
         $admin = User::factory()->create();
-        $firstPackage = Package::query()->create([
+        $starterPackage = Package::query()->create([
             'name' => 'Starter',
             'levels_count' => 1,
             'price' => 1000,
             'status' => 'active',
         ]);
-        $secondPackage = Package::query()->create([
+        $advancedPackage = Package::query()->create([
             'name' => 'Advanced',
             'levels_count' => 3,
             'price' => 2500,
@@ -38,7 +39,10 @@ class CustomerPackageAssignmentTest extends TestCase
                 'second_phone_number' => '+20 1000000022',
                 'status' => 'active',
                 'customer_type' => 'new',
-                'package_ids' => [$firstPackage->id, $secondPackage->id],
+                'package_assignments' => [
+                    ['package_id' => $starterPackage->id, 'quantity' => 3],
+                    ['package_id' => $advancedPackage->id, 'quantity' => 1],
+                ],
             ]);
 
         $customer = Customer::query()->where('phone', '+20 1000000011')->firstOrFail();
@@ -54,7 +58,7 @@ class CustomerPackageAssignmentTest extends TestCase
 
         $this->assertDatabaseHas('customer_packages', [
             'customer_id' => $customer->id,
-            'package_id' => $firstPackage->id,
+            'package_id' => $starterPackage->id,
             'final_price' => '1000.00',
             'remaining_amount' => '1000.00',
             'payment_status' => 'unpaid',
@@ -64,16 +68,19 @@ class CustomerPackageAssignmentTest extends TestCase
 
         $this->assertDatabaseHas('customer_packages', [
             'customer_id' => $customer->id,
-            'package_id' => $secondPackage->id,
+            'package_id' => $advancedPackage->id,
             'final_price' => '2500.00',
             'remaining_amount' => '2500.00',
             'payment_status' => 'unpaid',
             'status' => 'active',
             'created_by' => $admin->id,
         ]);
+
+        $this->assertSame(3, $customer->customerPackages()->where('package_id', $starterPackage->id)->count());
+        $this->assertSame(4, $customer->customerPackages()->count());
     }
 
-    public function test_changing_customer_package_creates_new_history_row(): void
+    public function test_editing_customer_profile_adds_packages_without_replacing_existing_packages(): void
     {
         $admin = User::factory()->create();
         $oldPackage = Package::query()->create([
@@ -105,7 +112,9 @@ class CustomerPackageAssignmentTest extends TestCase
             ->actingAs($admin)
             ->put(route('customers.update', $customer), [
                 ...$this->customerPayload(),
-                'package_id' => $newPackage->id,
+                'package_assignments' => [
+                    ['package_id' => $newPackage->id, 'quantity' => 2],
+                ],
             ]);
 
         $response
@@ -120,23 +129,25 @@ class CustomerPackageAssignmentTest extends TestCase
         $this->assertDatabaseHas('customer_packages', [
             'id' => $currentAssignment->id,
             'package_id' => $oldPackage->id,
-            'status' => 'completed',
+            'status' => 'active',
         ]);
 
         $this->assertDatabaseHas('customer_packages', [
             'customer_id' => $customer->id,
             'package_id' => $newPackage->id,
-            'final_price' => '2500.00',
-            'remaining_amount' => '2500.00',
             'status' => 'active',
-            'created_by' => $admin->id,
         ]);
+
+        $this->assertSame(2, $customer->fresh()->customerPackages()
+            ->where('package_id', $newPackage->id)
+            ->where('status', 'active')
+            ->count());
     }
 
-    public function test_customer_packages_can_be_synced_from_edit_form(): void
+    public function test_editing_customer_profile_keeps_multiple_active_packages(): void
     {
         $admin = User::factory()->create();
-        $keptPackage = Package::query()->create([
+        $oldPackage = Package::query()->create([
             'name' => 'Starter',
             'levels_count' => 1,
             'price' => 1000,
@@ -148,15 +159,9 @@ class CustomerPackageAssignmentTest extends TestCase
             'price' => 1800,
             'status' => 'active',
         ]);
-        $addedPackage = Package::query()->create([
-            'name' => 'Advanced',
-            'levels_count' => 3,
-            'price' => 2500,
-            'status' => 'active',
-        ]);
         $customer = Customer::query()->create($this->customerPayload());
-        $keptAssignment = $customer->customerPackages()->create([
-            'package_id' => $keptPackage->id,
+        $oldAssignment = $customer->customerPackages()->create([
+            'package_id' => $oldPackage->id,
             'price' => 1000,
             'discount' => 0,
             'final_price' => 1000,
@@ -182,7 +187,6 @@ class CustomerPackageAssignmentTest extends TestCase
             ->actingAs($admin)
             ->put(route('customers.update', $customer), [
                 ...$this->customerPayload(),
-                'package_ids' => [$keptPackage->id, $addedPackage->id],
             ]);
 
         $response
@@ -190,26 +194,19 @@ class CustomerPackageAssignmentTest extends TestCase
             ->assertRedirect(route('customers.show', $customer));
 
         $this->assertDatabaseHas('customer_packages', [
-            'id' => $keptAssignment->id,
+            'id' => $oldAssignment->id,
             'status' => 'active',
         ]);
 
         $this->assertDatabaseHas('customer_packages', [
             'id' => $removedAssignment->id,
-            'status' => 'completed',
+            'status' => 'active',
         ]);
 
-        $this->assertDatabaseHas('customer_packages', [
-            'customer_id' => $customer->id,
-            'package_id' => $addedPackage->id,
-            'final_price' => '2500.00',
-            'remaining_amount' => '2500.00',
-            'status' => 'active',
-            'created_by' => $admin->id,
-        ]);
+        $this->assertSame(2, $customer->fresh()->customerPackages()->where('status', 'active')->count());
     }
 
-    public function test_clearing_customer_package_cancels_active_assignments(): void
+    public function test_editing_customer_profile_does_not_clear_active_packages(): void
     {
         $admin = User::factory()->create();
         $package = Package::query()->create([
@@ -244,8 +241,108 @@ class CustomerPackageAssignmentTest extends TestCase
 
         $this->assertDatabaseHas('customer_packages', [
             'id' => $currentAssignment->id,
-            'status' => 'cancelled',
+            'status' => 'active',
         ]);
+    }
+
+    public function test_editing_customer_profile_does_not_change_group_linked_package(): void
+    {
+        $admin = User::factory()->create();
+        $oldPackage = Package::query()->create([
+            'name' => 'Starter',
+            'levels_count' => 1,
+            'price' => 1000,
+            'status' => 'active',
+        ]);
+        $newPackage = Package::query()->create([
+            'name' => 'Advanced',
+            'levels_count' => 3,
+            'price' => 2500,
+            'status' => 'active',
+        ]);
+        $customer = Customer::query()->create($this->customerPayload());
+        $assignment = $customer->customerPackages()->create([
+            'package_id' => $oldPackage->id,
+            'price' => 1000,
+            'discount' => 0,
+            'final_price' => 1000,
+            'paid_amount' => 0,
+            'remaining_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+        $group = Group::query()->create([
+            'name' => 'Saturday A',
+            'package_id' => $oldPackage->id,
+            'status' => 'active',
+        ]);
+        $group->groupEnrollments()->create([
+            'customer_id' => $customer->id,
+            'customer_package_id' => $assignment->id,
+            'status' => 'active',
+            'joined_at' => '2026-05-09',
+        ]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->put(route('customers.update', $customer), [
+                ...$this->customerPayload(),
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('customers.show', $customer));
+
+        $this->assertDatabaseHas('customer_packages', [
+            'id' => $assignment->id,
+            'status' => 'active',
+        ]);
+
+        $this->assertDatabaseMissing('customer_packages', [
+            'customer_id' => $customer->id,
+            'package_id' => $newPackage->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_same_package_can_be_added_to_customer_more_than_once(): void
+    {
+        $admin = User::factory()->create();
+        $package = Package::query()->create([
+            'name' => 'Starter',
+            'levels_count' => 1,
+            'price' => 1000,
+            'status' => 'active',
+        ]);
+        $customer = Customer::query()->create($this->customerPayload());
+        $customer->customerPackages()->create([
+            'package_id' => $package->id,
+            'price' => 1000,
+            'discount' => 0,
+            'final_price' => 1000,
+            'paid_amount' => 0,
+            'remaining_amount' => 1000,
+            'payment_status' => 'unpaid',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+
+        $response = $this
+            ->actingAs($admin)
+            ->post(route('customers.packages.store', $customer), [
+                'package_id' => $package->id,
+                'quantity' => 2,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('customers.show', $customer));
+
+        $this->assertSame(3, $customer->fresh()->customerPackages()
+            ->where('package_id', $package->id)
+            ->where('status', 'active')
+            ->count());
     }
 
     public function test_customer_payment_updates_package_balance(): void

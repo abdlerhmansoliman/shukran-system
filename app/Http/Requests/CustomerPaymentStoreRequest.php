@@ -65,11 +65,11 @@ class CustomerPaymentStoreRequest extends FormRequest
             $amount = (float) $this->input('amount', 0);
 
             if ($remainingAmount <= 0) {
-                $validator->errors()->add('customer_package_id', __('This package is already fully paid.'));
+                $validator->errors()->add('customer_package_id', __('This subscription is already fully paid.'));
             }
 
             if ($amount > $remainingAmount) {
-                $validator->errors()->add('amount', __('The payment amount cannot be greater than the remaining package balance.'));
+                $validator->errors()->add('amount', __('The payment amount cannot be greater than the remaining subscription balance.'));
             }
         });
     }
