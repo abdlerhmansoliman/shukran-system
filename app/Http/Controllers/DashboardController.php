@@ -79,7 +79,7 @@ class DashboardController extends Controller
             'currentGroups' => Group::query()
                 ->with(['category.parent', 'instructor'])
                 ->withCount([
-                    'groupEnrollments as active_enrollments_count' => fn (Builder $query) => $query->where('status', GroupEnrollmentStatus::Active->value),
+                    'groupEnrollments as active_enrollments_count' => fn (Builder $query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()),
                 ])
                 ->whereIn('status', [GroupStatus::Planned->value, GroupStatus::Active->value])
                 ->latest()

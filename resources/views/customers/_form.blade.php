@@ -175,7 +175,7 @@
 
                     @forelse($currentSubscriptions as $subscription)
                         @php
-                            $hasActiveEnrollment = $subscription->groupEnrollments?->contains('status', 'active') ?? false;
+                            $hasActiveEnrollment = $subscription->groupEnrollments?->contains(fn ($enrollment) => in_array($enrollment->status, ['pending', 'ready', 'active'], true)) ?? false;
                             $statusClasses = match ($subscription->status) {
                                 'active' => 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
                                 'completed' => 'bg-sky-50 text-sky-700 ring-sky-600/20',
@@ -216,7 +216,7 @@
                             </div>
 
                             @if($hasActiveEnrollment)
-                                <p class="text-xs text-slate-500 lg:col-span-4">{{ __('This subscription is linked to an active group.') }}</p>
+                                <p class="text-xs text-slate-500 lg:col-span-4">{{ __('This subscription is reserved by a group enrollment.') }}</p>
                             @endif
                         </div>
                     @empty

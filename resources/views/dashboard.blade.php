@@ -136,7 +136,7 @@
                                 </div>
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{{ __(\Illuminate\Support\Str::headline($group->status)) }}</span>
                             </div>
-                            <p class="mt-3 text-sm text-slate-500">{{ __(':count active students', ['count' => number_format($group->active_enrollments_count)]) }}</p>
+                            <p class="mt-3 text-sm text-slate-500">{{ __(':count current students', ['count' => number_format($group->active_enrollments_count)]) }}</p>
                         </a>
                     @empty
                         <div class="rounded-2xl bg-slate-50 p-5 text-sm text-slate-500">{{ __('No planned or active groups yet.') }}</div>

@@ -58,7 +58,7 @@ class GroupCustomerStoreRequest extends FormRequest
         $eligibleCustomerIds = CustomerPackage::query()
             ->whereIn('customer_id', $customerIds)
             ->where('status', 'active')
-            ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value))
+            ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()))
             ->whereHas('customer', function ($query) use ($group) {
                 $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
             })

@@ -9,7 +9,7 @@
         $group->start_time ? substr((string) $group->start_time, 0, 5) : null,
         $group->end_time ? substr((string) $group->end_time, 0, 5) : null,
     ])->filter()->implode(' - ');
-    $activeEnrollments = $group->groupEnrollments->where('status', 'active');
+    $currentEnrollments = $group->groupEnrollments->whereIn('status', ['pending', 'ready', 'active']);
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -71,7 +71,7 @@
                         <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Students') }}</p>
                             <p class="mt-2 text-base font-semibold text-slate-900">
-                                {{ $activeEnrollments->count() }}@if($group->capacity) / {{ $group->capacity }}@endif
+                                {{ $currentEnrollments->count() }}@if($group->capacity) / {{ $group->capacity }}@endif
                             </p>
                         </div>
                     </div>
@@ -207,6 +207,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ __('Package') }}</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ __('Status') }}</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ __('Joined') }}</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ __('Action') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-200 bg-white">
@@ -232,6 +233,58 @@
                                         </td>
                                         <td class="px-4 py-4 text-sm font-medium text-slate-700">
                                             {{ $enrollment->joined_at?->format('M d, Y') ?: __('Not specified') }}
+                                        </td>
+                                        <td class="px-4 py-4 text-right">
+                                            <div class="flex flex-wrap justify-end gap-2">
+                                                @if($group->status === 'planned' && $enrollment->status === 'pending')
+                                                    <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="ready">
+                                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
+                                                            {{ __('Confirm Customer') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                @if($group->status === 'planned' && $enrollment->status === 'ready')
+                                                    <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="pending">
+                                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-amber-700 transition hover:bg-amber-50">
+                                                            {{ __('Undo Confirmation') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                @if($group->status === 'planned' && in_array($enrollment->status, ['pending', 'ready'], true))
+                                                    <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="cancelled">
+                                                        <button
+                                                            type="submit"
+                                                            onclick="return confirm(@js(__('Cancel this enrollment?')))"
+                                                            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                                                        >
+                                                            {{ __('Cancel') }}
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <form method="POST" action="{{ route('groups.customers.destroy', [$group, $enrollment]) }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        type="submit"
+                                                        onclick="return confirm(@js(__('Remove this customer from the group?')))"
+                                                        class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                                                    >
+                                                        {{ __('Remove') }}
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach

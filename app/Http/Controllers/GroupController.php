@@ -13,11 +13,14 @@ use App\Models\Category;
 use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Group;
+use App\Models\GroupEnrollment;
 use App\Models\Level;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class GroupController extends Controller
 {
@@ -68,7 +71,26 @@ class GroupController extends Controller
 
     public function update(GroupUpdateRequest $request, Group $group)
     {
-        $group->update($request->groupData());
+        $data = $request->groupData();
+
+        if (($data['status'] ?? null) === GroupStatus::Active->value && $group->status !== GroupStatus::Active->value) {
+            $startBlockerMessage = $this->groupStartBlockerMessage($group);
+
+            if ($startBlockerMessage) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['status' => $startBlockerMessage])
+                    ->with('error', $startBlockerMessage);
+            }
+        }
+
+        DB::transaction(function () use ($data, $group) {
+            $group->update($data);
+
+            if ($group->status === GroupStatus::Active->value) {
+                $this->activateReadyEnrollments($group);
+            }
+        });
 
         return redirect()
             ->route('groups.show', $group)
@@ -115,6 +137,48 @@ class GroupController extends Controller
             ->with($result['added'] > 0 ? 'success' : 'error', $this->enrollmentMessage($result));
     }
 
+    public function destroyCustomer(Group $group, GroupEnrollment $groupEnrollment)
+    {
+        abort_unless((int) $groupEnrollment->group_id === (int) $group->id, 404);
+
+        $groupEnrollment->delete();
+
+        return redirect()
+            ->route('groups.show', $group)
+            ->with('success', __('Customer removed from group successfully.'));
+    }
+
+    public function updateCustomerStatus(Request $request, Group $group, GroupEnrollment $groupEnrollment)
+    {
+        abort_unless((int) $groupEnrollment->group_id === (int) $group->id, 404);
+
+        if ($group->status !== GroupStatus::Planned->value) {
+            return redirect()
+                ->route('groups.show', $group)
+                ->with('error', __('Enrollment confirmation can only be changed while the group is planned.'));
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                Rule::in([
+                    GroupEnrollmentStatus::Pending->value,
+                    GroupEnrollmentStatus::Ready->value,
+                    GroupEnrollmentStatus::Cancelled->value,
+                ]),
+            ],
+        ]);
+
+        $groupEnrollment->update([
+            'status' => $validated['status'],
+            'left_at' => $validated['status'] === GroupEnrollmentStatus::Cancelled->value ? now()->toDateString() : null,
+        ]);
+
+        return redirect()
+            ->route('groups.show', $group)
+            ->with('success', __('Enrollment status updated successfully.'));
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -148,7 +212,7 @@ class GroupController extends Controller
             ->whereHas('customerPackages', function ($builder) {
                 $builder
                     ->where('status', 'active')
-                    ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value));
+                    ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()));
             })
             ->orderBy('first_name')
             ->orderBy('last_name')
@@ -179,7 +243,7 @@ class GroupController extends Controller
 
             if ($group->capacity) {
                 $activeCount = $group->groupEnrollments()
-                    ->where('status', GroupEnrollmentStatus::Active->value)
+                    ->whereIn('status', GroupEnrollmentStatus::reservedValues())
                     ->count();
                 $availableSlots = max($group->capacity - $activeCount, 0);
 
@@ -199,7 +263,7 @@ class GroupController extends Controller
             $customerPackages = CustomerPackage::query()
                 ->whereIn('customer_id', $newCustomerIds)
                 ->where('status', 'active')
-                ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value))
+                ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()))
                 ->whereHas('customer', function ($query) use ($group) {
                     $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
                 })
@@ -214,11 +278,13 @@ class GroupController extends Controller
                 ->values();
 
             foreach ($newCustomerIds as $customerId) {
+                $status = $this->newEnrollmentStatus($group);
+
                 $group->groupEnrollments()->create([
                     'customer_id' => $customerId,
                     'customer_package_id' => $customerPackages->get($customerId)?->id,
-                    'status' => GroupEnrollmentStatus::Active->value,
-                    'joined_at' => now()->toDateString(),
+                    'status' => $status,
+                    'joined_at' => $status === GroupEnrollmentStatus::Active->value ? now()->toDateString() : null,
                 ]);
             }
 
@@ -245,6 +311,44 @@ class GroupController extends Controller
         }
 
         return __('No customers were added. They may already be in the group or the group is full.');
+    }
+
+    private function groupStartBlockerMessage(Group $group): ?string
+    {
+        $nonReadyEnrollmentsCount = $group->groupEnrollments()
+            ->whereNotIn('status', [
+                GroupEnrollmentStatus::Ready->value,
+                GroupEnrollmentStatus::Cancelled->value,
+            ])
+            ->count();
+
+        if ($nonReadyEnrollmentsCount > 0) {
+            return trans_choice(
+                '{1} The group cannot start because 1 customer is not ready.|[2,*] The group cannot start because :count customers are not ready.',
+                $nonReadyEnrollmentsCount,
+                ['count' => $nonReadyEnrollmentsCount]
+            );
+        }
+
+        return null;
+    }
+
+    private function activateReadyEnrollments(Group $group): void
+    {
+        $group->groupEnrollments()
+            ->where('status', GroupEnrollmentStatus::Ready->value)
+            ->update([
+                'status' => GroupEnrollmentStatus::Active->value,
+                'joined_at' => now()->toDateString(),
+                'left_at' => null,
+            ]);
+    }
+
+    private function newEnrollmentStatus(Group $group): string
+    {
+        return $group->status === GroupStatus::Active->value
+            ? GroupEnrollmentStatus::Active->value
+            : GroupEnrollmentStatus::Pending->value;
     }
 
     /**

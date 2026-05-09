@@ -466,5 +466,20 @@
     "Customer Status": "حالة العميل",
     "All statuses": "كل الحالات",
     "Selected customers must have an active subscription before enrollment.": "يجب أن يكون لدى العملاء المحددين اشتراك نشط قبل التسجيل.",
-    "Selected customers must match the group category and have an available active subscription.": "يجب أن يطابق العملاء المحددون فئة المجموعة وأن يكون لديهم اشتراك نشط متاح."
+    "Selected customers must match the group category and have an available active subscription.": "يجب أن يطابق العملاء المحددون فئة المجموعة وأن يكون لديهم اشتراك نشط متاح.",
+    "Remove this customer from the group?": "إزالة هذا العميل من المجموعة؟",
+    "Customer removed from group successfully.": "تمت إزالة العميل من المجموعة بنجاح.",
+    "Ready": "جاهز",
+    "Mark Ready": "تأكيد الجاهزية",
+    "Mark Pending": "إرجاع إلى الانتظار",
+    "Confirm Customer": "تأكيد العميل",
+    "Undo Confirmation": "إلغاء التأكيد",
+    "Cancel this enrollment?": "إلغاء تسجيل هذا العميل؟",
+    "Enrollment status updated successfully.": "تم تحديث حالة التسجيل بنجاح.",
+    "Enrollment confirmation can only be changed while the group is planned.": "يمكن تغيير تأكيد التسجيل فقط أثناء كون المجموعة مخططة.",
+    "The group cannot start while any customer is still pending confirmation.": "لا يمكن بدء المجموعة أثناء وجود أي عميل في انتظار التأكيد.",
+    ":count current students": ":count طالب حالي",
+    "This subscription is reserved by a group enrollment.": "هذا الاشتراك محجوز بواسطة تسجيل في مجموعة.",
+    "This subscription cannot be removed while it is reserved by a group enrollment.": "لا يمكن إزالة هذا الاشتراك أثناء حجزه بواسطة تسجيل في مجموعة.",
+    "{1} The group cannot start because 1 customer is not ready.|[2,*] The group cannot start because :count customers are not ready.": "{1} لا يمكن بدء المجموعة لأن عميلاً واحداً غير جاهز.|[2,*] لا يمكن بدء المجموعة لأن :count عملاء غير جاهزين."
 }

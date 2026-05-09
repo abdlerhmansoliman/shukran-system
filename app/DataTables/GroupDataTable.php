@@ -2,6 +2,7 @@
 
 namespace App\DataTables;
 
+use App\Enums\GroupEnrollmentStatus;
 use App\Models\Group;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Illuminate\Support\Str;
@@ -92,7 +93,7 @@ class GroupDataTable extends DataTable
         return $model->newQuery()
             ->with(['instructor'])
             ->withCount([
-                'groupEnrollments as active_enrollments_count' => fn (QueryBuilder $query) => $query->where('status', 'active'),
+                'groupEnrollments as active_enrollments_count' => fn (QueryBuilder $query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()),
             ])
             ->select('groups.*');
     }

@@ -39,6 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
     Route::post('groups/{group}/customers', [GroupController::class, 'enrollCustomers'])->name('groups.customers.store');
+    Route::patch('groups/{group}/customers/{groupEnrollment}', [GroupController::class, 'updateCustomerStatus'])->name('groups.customers.update');
+    Route::delete('groups/{group}/customers/{groupEnrollment}', [GroupController::class, 'destroyCustomer'])->name('groups.customers.destroy');
     Route::resource('groups', GroupController::class);
     Route::resource('packages', PackageController::class)->except('show');
     Route::resource('categories', CategoryController::class)->except('show');

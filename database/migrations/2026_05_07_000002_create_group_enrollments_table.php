@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained()->cascadeOnDelete();
             $table->foreignId('customer_id')->constrained()->restrictOnDelete();
             $table->foreignId('customer_package_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('status', ['active', 'completed', 'dropped', 'transferred'])->default('active');
+            $table->enum('status', ['pending', 'ready', 'active', 'completed', 'cancelled', 'dropped', 'transferred'])->default('pending');
             $table->date('joined_at')->nullable();
             $table->date('left_at')->nullable();
             $table->timestamps();

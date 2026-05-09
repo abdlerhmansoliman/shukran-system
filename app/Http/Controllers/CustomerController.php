@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\CustomerDataTable;
+use App\Enums\GroupEnrollmentStatus;
 use App\Enums\GroupStatus;
 use App\Http\Requests\CustomerPackageStoreRequest;
 use App\Http\Requests\CustomerPaymentStoreRequest;
@@ -127,11 +128,11 @@ class CustomerController extends Controller
         abort_unless((int) $customerPackage->customer_id === (int) $customer->id, 404);
 
         $hasActiveEnrollment = $customerPackage->groupEnrollments()
-            ->where('status', 'active')
+            ->whereIn('status', GroupEnrollmentStatus::reservedValues())
             ->exists();
 
         if ($hasActiveEnrollment) {
-            return back()->with('error', __('This subscription cannot be removed while it is linked to an active group.'));
+            return back()->with('error', __('This subscription cannot be removed while it is reserved by a group enrollment.'));
         }
 
         if ($customerPackage->status !== 'cancelled') {
