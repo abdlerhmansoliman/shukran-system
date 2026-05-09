@@ -30,7 +30,7 @@ class CategoryUpdateRequest extends FormRequest
                     ->where(fn ($query) => $query->where('parent_id', $this->input('parent_id')))
                     ->ignore($categoryId),
             ],
-            'parent_id' => ['nullable', 'exists:categories,id', Rule::notIn([$categoryId])],
+            'parent_id' => ['nullable', Rule::exists('categories', 'id')->whereNull('parent_id'), Rule::notIn([$categoryId])],
         ];
     }
 

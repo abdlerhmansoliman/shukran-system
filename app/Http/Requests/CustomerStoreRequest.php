@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\CustomerStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -41,11 +40,6 @@ class CustomerStoreRequest extends FormRequest
             'package_assignments' => $assignments,
         ]);
 
-        if (! $this->filled('status')) {
-            $this->merge([
-                'status' => CustomerStatus::Inactive->value,
-            ]);
-        }
     }
 
     /**
@@ -69,7 +63,6 @@ class CustomerStoreRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['required', 'string', 'max:255'],
             'second_phone_number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(CustomerStatus::values())],
             'source' => ['nullable', 'string', 'max:255'],
             'customer_type' => ['required', Rule::in(['new', 'old'])],
             'placement_month' => ['nullable', 'date'],
@@ -84,7 +77,7 @@ class CustomerStoreRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'country_id' => ['nullable', 'exists:countries,id'],
             'level_id' => ['nullable', 'exists:levels,id'],
-            'category_id' => ['nullable', 'exists:categories,id'],
+            'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

@@ -32,8 +32,7 @@ class GroupStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'level_id' => ['nullable', 'exists:levels,id'],
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'package_id' => ['nullable', 'exists:packages,id'],
+            'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
             'instructor_id' => ['nullable', 'exists:users,id'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:999'],
             'start_date' => ['nullable', 'date'],

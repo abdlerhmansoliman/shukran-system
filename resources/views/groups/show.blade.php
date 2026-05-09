@@ -69,10 +69,6 @@
                             <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->instructor?->name ?: __('Not specified') }}</p>
                         </div>
                         <div>
-                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
-                            <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->package?->name ?: __('Not specified') }}</p>
-                        </div>
-                        <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Students') }}</p>
                             <p class="mt-2 text-base font-semibold text-slate-900">
                                 {{ $activeEnrollments->count() }}@if($group->capacity) / {{ $group->capacity }}@endif

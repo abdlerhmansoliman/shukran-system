@@ -6,6 +6,8 @@ use App\DataTables\CategoryDataTable;
 use App\Http\Requests\CategoryStoreRequest;
 use App\Http\Requests\CategoryUpdateRequest;
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CategoryController extends Controller
 {
@@ -21,11 +23,47 @@ class CategoryController extends Controller
 
     public function store(CategoryStoreRequest $request)
     {
-        $category = Category::query()->create($request->categoryData());
+        $category = DB::transaction(function () use ($request) {
+            $parent = null;
+
+            if ($parentName = $request->parentName()) {
+                $parent = Category::query()->firstOrCreate([
+                    'name' => $parentName,
+                    'parent_id' => null,
+                ]);
+            }
+
+            if (! $request->childName()) {
+                return $parent;
+            }
+
+            $parent ??= Category::query()->parents()->findOrFail($request->parentId());
+
+            $this->ensureCategoryNameIsUnique($request->childName(), $parent->id, 'child_name');
+
+            return Category::query()->create([
+                'name' => $request->childName(),
+                'parent_id' => $parent->id,
+            ]);
+        });
 
         return redirect()
             ->route('categories.edit', $category)
             ->with('success', __('Category created successfully.'));
+    }
+
+    private function ensureCategoryNameIsUnique(string $name, ?int $parentId, string $field = 'name'): void
+    {
+        $exists = Category::query()
+            ->where('name', $name)
+            ->where('parent_id', $parentId)
+            ->exists();
+
+        if ($exists) {
+            throw ValidationException::withMessages([
+                $field => __('A category with this name already exists under the selected parent.'),
+            ]);
+        }
     }
 
     public function edit(Category $category)
@@ -73,8 +111,8 @@ class CategoryController extends Controller
     {
         return [
             'parentCategories' => Category::query()
+                ->parents()
                 ->when($category, fn ($query) => $query->whereKeyNot($category->id))
-                ->with('parent')
                 ->orderBy('name')
                 ->get(),
         ];

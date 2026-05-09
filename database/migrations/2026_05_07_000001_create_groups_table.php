@@ -16,7 +16,6 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('level_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('package_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('instructor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedInteger('capacity')->nullable();
             $table->date('start_date')->nullable();

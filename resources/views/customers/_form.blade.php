@@ -1,5 +1,4 @@
 @php
-    $statusValue = old('status', $customer?->status ?? \App\Enums\CustomerStatus::Inactive->value);
     $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m-d'));
     $packageAssignmentRows = collect(old('package_assignments', [['package_id' => '', 'quantity' => 1]]))
         ->map(fn ($assignment) => [
@@ -63,16 +62,6 @@
             <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Customer Details') }}</p>
 
             <div class="mt-6 grid gap-5 md:grid-cols-2">
-                <div>
-                    <label for="status" class="text-sm font-semibold text-slate-700">{{ __('Status') }}</label>
-                    <select id="status" name="status" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        @foreach($statuses as $value => $label)
-                            <option value="{{ $value }}" @selected($statusValue === $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    @error('status')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
                 <div>
                     <label for="source" class="text-sm font-semibold text-slate-700">{{ __('Source') }}</label>
                     <select id="source" name="source" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">

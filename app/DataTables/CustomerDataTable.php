@@ -64,7 +64,7 @@ class CustomerDataTable extends DataTable
 
                 return '<span class="font-medium text-slate-700">'.e($customer->phone).'</span>'.$secondPhone;
             })
-            ->editColumn('status', function (Customer $customer) {
+            ->addColumn('status', function (Customer $customer) {
                 $classes = $customer->status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
                     : 'bg-slate-100 text-slate-600 ring-slate-500/20';
@@ -92,6 +92,17 @@ class CustomerDataTable extends DataTable
                         ->orWhere('second_phone_number', 'like', "%{$keyword}%");
                 });
             })
+            ->filterColumn('status', function (QueryBuilder $query, string $keyword) {
+                $status = Str::lower($keyword);
+
+                if ($status === 'active') {
+                    $query->whereHas('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
+                }
+
+                if ($status === 'inactive') {
+                    $query->whereDoesntHave('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
+                }
+            })
             ->rawColumns(['select', 'customer', 'phone', 'status', 'source', 'action'])
             ->setRowId('id');
     }
@@ -103,7 +114,11 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->newQuery()->select('customers.*');
+        return $model->newQuery()
+            ->select('customers.*')
+            ->withCount([
+                'customerPackages as active_subscriptions_count' => fn (QueryBuilder $query) => $query->where('status', 'active'),
+            ]);
     }
 
     /**
@@ -184,7 +199,7 @@ class CustomerDataTable extends DataTable
                 ->orderable(false)
                 ->addClass('min-w-[340px]'),
             Column::make('phone')->title(__('Phone'))->addClass('whitespace-nowrap min-w-[180px]'),
-            Column::make('status')->title(__('Status')),
+            Column::computed('status')->title(__('Status'))->searchable(true)->orderable(false),
             Column::make('source')->title(__('Source')),
             Column::make('created_at')->title(__('Created'))->addClass('whitespace-nowrap min-w-[160px]')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
 

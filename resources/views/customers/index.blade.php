@@ -76,6 +76,15 @@
             </div>
         </form>
 
+        <div class="mb-4 flex justify-end">
+            <label for="customer-status-filter" class="sr-only">{{ __('Customer Status') }}</label>
+            <select id="customer-status-filter" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 sm:w-48">
+                <option value="">{{ __('All statuses') }}</option>
+                <option value="active">{{ __('Active') }}</option>
+                <option value="inactive">{{ __('Inactive') }}</option>
+            </select>
+        </div>
+
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             {!! $dataTable->table(['class' => 'customer-table min-w-full divide-y divide-slate-200'], true) !!}
         </div>
@@ -92,6 +101,7 @@
             const hiddenInputs = document.getElementById('bulk-customer-inputs');
             const selectedCount = document.getElementById('selected-customers-count');
             const submitButton = document.getElementById('bulk-group-submit');
+            const statusFilter = document.getElementById('customer-status-filter');
 
             const syncControls = () => {
                 if (selectedCount) {
@@ -158,6 +168,12 @@
             });
 
             window.jQuery?.(() => {
+                const table = window.jQuery('#customer-table').DataTable();
+
+                statusFilter?.addEventListener('change', () => {
+                    table.column(4).search(statusFilter.value).draw();
+                });
+
                 window.jQuery('#customer-table').on('draw.dt', syncControls);
             });
 

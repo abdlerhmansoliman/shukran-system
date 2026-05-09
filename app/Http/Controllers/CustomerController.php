@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\CustomerDataTable;
-use App\Enums\CustomerStatus;
 use App\Enums\GroupStatus;
 use App\Http\Requests\CustomerPackageStoreRequest;
 use App\Http\Requests\CustomerPaymentStoreRequest;
@@ -202,6 +201,7 @@ class CustomerController extends Controller
     {
         return [
             'categories' => Category::query()
+                ->children()
                 ->with('parent')
                 ->orderBy('name')
                 ->get(),
@@ -215,7 +215,6 @@ class CustomerController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
-            'statuses' => CustomerStatus::options(),
             'users' => User::query()
                 ->orderBy('name')
                 ->get(),

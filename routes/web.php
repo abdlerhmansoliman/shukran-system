@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\LevelController;
@@ -47,9 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::get('employees/{employee}/payrolls/create', [EmployeeController::class, 'createPayroll'])->name('employees.payrolls.create');
     Route::post('employees/{employee}/payrolls', [EmployeeController::class, 'storePayroll'])->name('employees.payrolls.store');
     Route::resource('employees', EmployeeController::class);
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 });
 

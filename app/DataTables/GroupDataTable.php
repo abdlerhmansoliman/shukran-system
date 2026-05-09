@@ -35,11 +35,6 @@ class GroupDataTable extends DataTable
                     ? '<span class="font-medium text-slate-700">'.e($group->instructor->name).'</span>'
                     : '<span class="text-sm text-slate-400">'.e(__('Not specified')).'</span>';
             })
-            ->addColumn('package', function (Group $group) {
-                return $group->package
-                    ? '<span class="font-medium text-slate-700">'.e($group->package->name).'</span>'
-                    : '<span class="text-sm text-slate-400">'.e(__('Not specified')).'</span>';
-            })
             ->addColumn('schedule', function (Group $group) {
                 $days = collect($group->days_of_week ?? [])
                     ->map(fn (string $day) => __(Str::headline($day)))
@@ -83,7 +78,7 @@ class GroupDataTable extends DataTable
                     $builder->where('name', 'like', "%{$keyword}%");
                 });
             })
-            ->rawColumns(['group', 'instructor', 'package', 'schedule', 'status', 'active_enrollments_count', 'action'])
+            ->rawColumns(['group', 'instructor', 'schedule', 'status', 'active_enrollments_count', 'action'])
             ->setRowId('id');
     }
 
@@ -95,7 +90,7 @@ class GroupDataTable extends DataTable
     public function query(Group $model): QueryBuilder
     {
         return $model->newQuery()
-            ->with(['instructor', 'package'])
+            ->with(['instructor'])
             ->withCount([
                 'groupEnrollments as active_enrollments_count' => fn (QueryBuilder $query) => $query->where('status', 'active'),
             ])
@@ -151,7 +146,7 @@ class GroupDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(7, 'desc');
+            ->orderBy(6, 'desc');
     }
 
     /**
@@ -173,7 +168,6 @@ class GroupDataTable extends DataTable
                 ->orderable(false)
                 ->addClass('min-w-[220px]'),
             Column::computed('instructor')->title(__('Instructor'))->searchable(false)->orderable(false)->addClass('min-w-[180px]'),
-            Column::computed('package')->title(__('Package'))->searchable(false)->orderable(false)->addClass('min-w-[160px]'),
             Column::computed('schedule')->title(__('Schedule'))->searchable(false)->orderable(false)->addClass('min-w-[220px]'),
             Column::make('status')->title(__('Status')),
             Column::make('active_enrollments_count')

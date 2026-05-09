@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\CustomerStatus;
+use App\Enums\GroupEnrollmentStatus;
 use App\Models\CustomerPackage;
 use App\Models\Group;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,7 +25,7 @@ class GroupCustomerStoreRequest extends FormRequest
             'customer_ids.*' => [
                 'integer',
                 'distinct',
-                Rule::exists('customers', 'id')->where('status', CustomerStatus::Active->value),
+                Rule::exists('customers', 'id'),
             ],
         ];
     }
@@ -35,15 +35,15 @@ class GroupCustomerStoreRequest extends FormRequest
         $validator->after(function ($validator) {
             $group = $this->route('group');
 
-            if (! $group instanceof Group || ! $group->package_id) {
+            if (! $group instanceof Group) {
                 return;
             }
 
-            $this->validateCustomersHaveGroupPackage($validator, $group);
+            $this->validateCustomersMatchCategoryAndHaveSubscription($validator, $group);
         });
     }
 
-    private function validateCustomersHaveGroupPackage($validator, Group $group): void
+    private function validateCustomersMatchCategoryAndHaveSubscription($validator, Group $group): void
     {
         $customerIds = collect($this->input('customer_ids', []))
             ->map(fn ($customerId) => (int) $customerId)
@@ -57,13 +57,16 @@ class GroupCustomerStoreRequest extends FormRequest
 
         $eligibleCustomerIds = CustomerPackage::query()
             ->whereIn('customer_id', $customerIds)
-            ->where('package_id', $group->package_id)
             ->where('status', 'active')
+            ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value))
+            ->whereHas('customer', function ($query) use ($group) {
+                $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
+            })
             ->pluck('customer_id')
             ->map(fn ($customerId) => (int) $customerId);
 
         if ($customerIds->diff($eligibleCustomerIds)->isNotEmpty()) {
-            $validator->errors()->add('customer_ids', __('Selected customers must have the group package active before enrollment.'));
+            $validator->errors()->add('customer_ids', __('Selected customers must match the group category and have an available active subscription.'));
         }
     }
 }

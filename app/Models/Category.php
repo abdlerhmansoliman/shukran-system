@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
@@ -19,6 +20,16 @@ class Category extends Model
     public function children()
     {
         return $this->hasMany(Category::class, 'parent_id');
+    }
+
+    public function scopeParents(Builder $query): Builder
+    {
+        return $query->whereNull('parent_id');
+    }
+
+    public function scopeChildren(Builder $query): Builder
+    {
+        return $query->whereNotNull('parent_id');
     }
 
     public function customers()

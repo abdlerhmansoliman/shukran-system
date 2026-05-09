@@ -10,7 +10,6 @@ class Group extends Model
         'name',
         'level_id',
         'category_id',
-        'package_id',
         'instructor_id',
         'capacity',
         'start_date',
@@ -39,11 +38,6 @@ class Group extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    public function package()
-    {
-        return $this->belongsTo(Package::class);
     }
 
     public function instructor()

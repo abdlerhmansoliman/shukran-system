@@ -14,7 +14,6 @@ use App\Models\Customer;
 use App\Models\CustomerPackage;
 use App\Models\Group;
 use App\Models\Level;
-use App\Models\Package;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -46,7 +45,6 @@ class GroupController extends Controller
         $group->load([
             'level',
             'category.parent',
-            'package',
             'instructor',
             'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
             'groupEnrollments.customer',
@@ -124,14 +122,11 @@ class GroupController extends Controller
     {
         return [
             'categories' => Category::query()
+                ->children()
                 ->with('parent')
                 ->orderBy('name')
                 ->get(),
             'levels' => Level::query()
-                ->orderBy('name')
-                ->get(),
-            'packages' => Package::query()
-                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'statuses' => GroupStatus::options(),
@@ -148,14 +143,12 @@ class GroupController extends Controller
     private function availableCustomers(Group $group): Collection
     {
         return Customer::query()
-            ->where('status', 'active')
+            ->when($group->category_id, fn ($query) => $query->where('category_id', $group->category_id))
             ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('group_id', $group->id))
-            ->when($group->package_id, function ($query) use ($group) {
-                $query->whereHas('customerPackages', function ($builder) use ($group) {
-                    $builder
-                        ->where('package_id', $group->package_id)
-                        ->where('status', 'active');
-                });
+            ->whereHas('customerPackages', function ($builder) {
+                $builder
+                    ->where('status', 'active')
+                    ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value));
             })
             ->orderBy('first_name')
             ->orderBy('last_name')
@@ -206,11 +199,19 @@ class GroupController extends Controller
             $customerPackages = CustomerPackage::query()
                 ->whereIn('customer_id', $newCustomerIds)
                 ->where('status', 'active')
-                ->when($group->package_id, fn ($query) => $query->where('package_id', $group->package_id))
+                ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('status', GroupEnrollmentStatus::Active->value))
+                ->whereHas('customer', function ($query) use ($group) {
+                    $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
+                })
                 ->latest('created_at')
                 ->get()
                 ->unique('customer_id')
                 ->keyBy('customer_id');
+
+            $missingSubscriptionCount = $newCustomerIds->diff($customerPackages->keys())->count();
+            $newCustomerIds = $newCustomerIds
+                ->filter(fn ($customerId) => $customerPackages->has($customerId))
+                ->values();
 
             foreach ($newCustomerIds as $customerId) {
                 $group->groupEnrollments()->create([
@@ -223,7 +224,7 @@ class GroupController extends Controller
 
             return [
                 'added' => $newCustomerIds->count(),
-                'skipped' => $existingCustomerIds->count() + $capacitySkipped,
+                'skipped' => $existingCustomerIds->count() + $capacitySkipped + $missingSubscriptionCount,
             ];
         });
     }

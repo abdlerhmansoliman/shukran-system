@@ -18,7 +18,6 @@ class Customer extends Model
         'email',
         'phone',
         'second_phone_number',
-        'status',
         'source',
         'notes',
         'level_id',
@@ -70,6 +69,31 @@ class Customer extends Model
     public function subscriptions()
     {
         return $this->customerPackages();
+    }
+
+    public function getStatusAttribute(): string
+    {
+        return $this->hasActiveSubscription() ? 'active' : 'inactive';
+    }
+
+    public function setStatusAttribute(mixed $value): void
+    {
+        // Customer status is virtual and comes from active subscriptions.
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        if (array_key_exists('active_subscriptions_count', $this->attributes)) {
+            return (int) $this->attributes['active_subscriptions_count'] > 0;
+        }
+
+        if ($this->relationLoaded('customerPackages')) {
+            return $this->customerPackages->contains('status', 'active');
+        }
+
+        return $this->customerPackages()
+            ->where('status', 'active')
+            ->exists();
     }
 
     public function payments()

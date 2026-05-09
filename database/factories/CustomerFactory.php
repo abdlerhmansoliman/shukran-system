@@ -35,7 +35,6 @@ class CustomerFactory extends Factory
             'email' => $hasEmail ? fake()->unique()->safeEmail() : null,
             'phone' => fake()->numerify('+20 1#########'),
             'second_phone_number' => fake()->optional()->numerify('+20 1#########'),
-            'status' => fake()->randomElement(['active', 'inactive']),
             'source' => fake()->randomElement([
                 'website',
                 'whatsapp',
@@ -52,7 +51,7 @@ class CustomerFactory extends Factory
                 : null,
             'notes' => fake()->boolean(70) ? fake()->sentence() : null,
             'level_id' => Level::query()->inRandomOrder()->value('id'),
-            'category_id' => Category::query()->inRandomOrder()->value('id'),
+            'category_id' => Category::query()->children()->inRandomOrder()->value('id'),
             'created_by' => null,
             'age' => fake()->numberBetween(6, 55),
             'gender' => fake()->randomElement(['male', 'female']),

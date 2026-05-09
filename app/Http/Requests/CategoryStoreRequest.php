@@ -18,21 +18,48 @@ class CategoryStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('categories', 'name')->where(fn ($query) => $query->where('parent_id', $this->input('parent_id'))),
-            ],
-            'parent_id' => ['nullable', 'exists:categories,id'],
+            'parent_name' => ['nullable', 'string', 'max:255'],
+            'child_name' => ['nullable', 'string', 'max:255'],
+            'parent_id' => ['nullable', Rule::exists('categories', 'id')->whereNull('parent_id')],
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function categoryData(): array
+    public function withValidator($validator): void
     {
-        return $this->validated();
+        $validator->after(function ($validator) {
+            $parentName = trim((string) $this->input('parent_name'));
+            $childName = trim((string) $this->input('child_name'));
+
+            if ($parentName === '' && $childName === '') {
+                $validator->errors()->add('parent_name', __('Enter a parent category name or child category name.'));
+
+                return;
+            }
+
+            if ($childName !== '' && $parentName === '' && ! $this->filled('parent_id')) {
+                $validator->errors()->add('parent_id', __('Choose a parent category before creating a child category.'));
+            }
+        });
+    }
+
+    public function parentName(): ?string
+    {
+        $name = trim((string) $this->validated('parent_name'));
+
+        return $name !== '' ? $name : null;
+    }
+
+    public function childName(): ?string
+    {
+        $name = trim((string) $this->validated('child_name'));
+
+        return $name !== '' ? $name : null;
+    }
+
+    public function parentId(): ?int
+    {
+        $parentId = $this->validated('parent_id');
+
+        return $parentId ? (int) $parentId : null;
     }
 }

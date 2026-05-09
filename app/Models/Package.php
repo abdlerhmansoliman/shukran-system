@@ -25,9 +25,4 @@ class Package extends Model
     {
         return $this->hasMany(CustomerPackage::class);
     }
-
-    public function groups()
-    {
-        return $this->hasMany(Group::class);
-    }
 }

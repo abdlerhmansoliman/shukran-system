@@ -120,19 +120,6 @@
                 </div>
 
                 <div>
-                    <label for="package_id" class="text-sm font-semibold text-slate-700">{{ __('Package') }}</label>
-                    <select id="package_id" name="package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($packages as $package)
-                            <option value="{{ $package->id }}" @selected((string) old('package_id', $group?->package_id) === (string) $package->id)>
-                                {{ $package->name }} - {{ number_format((float) $package->price, 2) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
                     <label for="instructor_id" class="text-sm font-semibold text-slate-700">{{ __('Instructor') }}</label>
                     <select id="instructor_id" name="instructor_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
