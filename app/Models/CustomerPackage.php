@@ -9,6 +9,8 @@ class CustomerPackage extends Model
     protected $fillable = [
         'customer_id',
         'package_id',
+        'discount_id',
+        'levels_count',
         'price',
         'discount',
         'final_price',
@@ -25,6 +27,7 @@ class CustomerPackage extends Model
     protected function casts(): array
     {
         return [
+            'levels_count' => 'integer',
             'price' => 'decimal:2',
             'discount' => 'decimal:2',
             'final_price' => 'decimal:2',
@@ -59,5 +62,10 @@ class CustomerPackage extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function discountTemplate()
+    {
+        return $this->belongsTo(Discount::class, 'discount_id');
     }
 }

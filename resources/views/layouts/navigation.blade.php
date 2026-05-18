@@ -81,12 +81,4 @@
             </div>
         @endforeach
     </div>
-
-    <div class="border-t border-slate-200 p-4">
-        <div class="rounded-3xl bg-slate-900 px-4 py-5 text-white shadow-sm">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Signed In') }}</p>
-            <p class="mt-3 text-base font-semibold">{{ Auth::user()->name }}</p>
-            <p class="mt-1 text-sm text-slate-300">{{ Auth::user()->email }}</p>
-        </div>
-    </div>
 </aside>

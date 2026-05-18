@@ -30,6 +30,9 @@ class PackageDataTable extends DataTable
             ->editColumn('price', function (Package $package) {
                 return '<span class="font-semibold text-slate-900">'.e(number_format((float) $package->price, 2)).'</span>';
             })
+            ->editColumn('level_price', function (Package $package) {
+                return '<span class="font-semibold text-slate-900">'.e(number_format((float) $package->level_price, 2)).'</span>';
+            })
             ->editColumn('status', function (Package $package) {
                 $classes = $package->status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
@@ -43,7 +46,7 @@ class PackageDataTable extends DataTable
             ->addColumn('action', function (Package $package) {
                 return view('components.package-datatable-actions', compact('package'))->render();
             })
-            ->rawColumns(['name', 'levels_count', 'price', 'status', 'customer_packages_count', 'action'])
+            ->rawColumns(['name', 'levels_count', 'price', 'level_price', 'status', 'customer_packages_count', 'action'])
             ->setRowId('id');
     }
 
@@ -108,7 +111,7 @@ class PackageDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(6, 'desc');
+            ->orderBy(7, 'desc');
     }
 
     /**
@@ -125,8 +128,9 @@ class PackageDataTable extends DataTable
                 ->addClass('text-slate-400'),
 
             Column::make('name')->title(__('Package'))->addClass('min-w-[260px]'),
-            Column::make('levels_count')->title(__('Levels Count'))->addClass('whitespace-nowrap'),
-            Column::make('price')->title(__('Price'))->addClass('whitespace-nowrap'),
+            Column::make('levels_count')->title(__('Package Levels'))->addClass('whitespace-nowrap'),
+            Column::make('level_price')->title(__('Level Price'))->addClass('whitespace-nowrap'),
+            Column::make('price')->title(__('Total Price'))->addClass('whitespace-nowrap'),
             Column::make('status')->title(__('Status')),
             Column::make('customer_packages_count')
                 ->title(__('Assigned Customers'))

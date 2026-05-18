@@ -15,7 +15,8 @@ class CustomerUpdateRequest extends FormRequest
             ->filter(fn ($assignment) => is_array($assignment) && filled($assignment['package_id'] ?? null))
             ->map(fn ($assignment) => [
                 'package_id' => (int) $assignment['package_id'],
-                'quantity' => filled($assignment['quantity'] ?? null) ? $assignment['quantity'] : 1,
+                'discount_id' => filled($assignment['discount_id'] ?? null) ? (int) $assignment['discount_id'] : null,
+                'levels_count' => filled($assignment['levels_count'] ?? null) ? (int) $assignment['levels_count'] : 1,
             ])
             ->values()
             ->all();
@@ -24,7 +25,8 @@ class CustomerUpdateRequest extends FormRequest
             $assignments = $legacyPackageIds
                 ->map(fn ($packageId) => [
                     'package_id' => (int) $packageId,
-                    'quantity' => 1,
+                    'discount_id' => null,
+                    'levels_count' => 1,
                 ])
                 ->all();
         }
@@ -32,7 +34,8 @@ class CustomerUpdateRequest extends FormRequest
         if ($assignments === [] && $this->filled('package_id')) {
             $assignments[] = [
                 'package_id' => (int) $this->input('package_id'),
-                'quantity' => 1,
+                'discount_id' => null,
+                'levels_count' => 1,
             ];
         }
 
@@ -70,7 +73,8 @@ class CustomerUpdateRequest extends FormRequest
             'package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
             'package_assignments' => ['nullable', 'array'],
             'package_assignments.*.package_id' => ['required', Rule::exists('packages', 'id')->where('status', 'active')],
-            'package_assignments.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
+            'package_assignments.*.discount_id' => ['nullable', Rule::exists('discounts', 'id')->where('status', 'active')],
+            'package_assignments.*.levels_count' => ['required', 'integer', 'min:1', 'max:50'],
             'age' => ['nullable', 'integer', 'min:0', 'max:120'],
             'wallet_balance' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
@@ -95,14 +99,15 @@ class CustomerUpdateRequest extends FormRequest
     }
 
     /**
-     * @return array<int, array{package_id: int, quantity: int}>
+     * @return array<int, array{package_id: int, levels_count: int}>
      */
     public function packageAssignments(): array
     {
         return collect($this->validated('package_assignments', []))
             ->map(fn (array $assignment) => [
                 'package_id' => (int) $assignment['package_id'],
-                'quantity' => (int) $assignment['quantity'],
+                'discount_id' => filled($assignment['discount_id'] ?? null) ? (int) $assignment['discount_id'] : null,
+                'levels_count' => (int) $assignment['levels_count'],
             ])
             ->all();
     }

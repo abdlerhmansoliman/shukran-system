@@ -9,9 +9,9 @@ class CustomerPackageStoreRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        if (! $this->filled('quantity')) {
+        if (! $this->filled('levels_count')) {
             $this->merge([
-                'quantity' => 1,
+                'levels_count' => 1,
             ]);
         }
     }
@@ -28,7 +28,8 @@ class CustomerPackageStoreRequest extends FormRequest
     {
         return [
             'package_id' => ['required', Rule::exists('packages', 'id')->where('status', 'active')],
-            'quantity' => ['required', 'integer', 'min:1', 'max:50'],
+            'discount_id' => ['nullable', Rule::exists('discounts', 'id')->where('status', 'active')],
+            'levels_count' => ['required', 'integer', 'min:1', 'max:50'],
         ];
     }
 
@@ -37,8 +38,14 @@ class CustomerPackageStoreRequest extends FormRequest
         return (int) $this->validated('package_id');
     }
 
-    public function quantity(): int
+    public function levelsCount(): int
     {
-        return (int) $this->validated('quantity');
+        return (int) $this->validated('levels_count');
+    }
+
+    public function discountId(): ?int
+    {
+        $discountId = $this->validated('discount_id');
+        return $discountId ? (int) $discountId : null;
     }
 }

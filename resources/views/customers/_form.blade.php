@@ -1,14 +1,15 @@
 @php
     $placementMonth = old('placement_month', $customer?->placement_month?->format('Y-m-d'));
-    $packageAssignmentRows = collect(old('package_assignments', [['package_id' => '', 'quantity' => 1]]))
+    $packageAssignmentRows = collect(old('package_assignments', [['package_id' => '', 'levels_count' => 1]]))
         ->map(fn ($assignment) => [
             'package_id' => $assignment['package_id'] ?? '',
-            'quantity' => $assignment['quantity'] ?? 1,
+            'discount_id' => $assignment['discount_id'] ?? '',
+            'levels_count' => $assignment['levels_count'] ?? 1,
         ])
         ->values();
 
     if ($packageAssignmentRows->isEmpty()) {
-        $packageAssignmentRows = collect([['package_id' => '', 'quantity' => 1]]);
+        $packageAssignmentRows = collect([['package_id' => '', 'discount_id' => '', 'levels_count' => 1]]);
     }
 
     $currentSubscriptions = $customer?->customerPackages?->sortByDesc('created_at')->values() ?? collect();
@@ -244,15 +245,27 @@
                                     <option value="">{{ __('No package') }}</option>
                                     @foreach($packages as $package)
                                         <option value="{{ $package->id }}" @selected((string) $assignment['package_id'] === (string) $package->id)>
-                                            {{ $package->name }} - {{ __('Levels: :count', ['count' => $package->levels_count]) }} - {{ number_format((float) $package->price, 2) }}
+                                            {{ $package->name }} - {{ __('Level Price: :price', ['price' => number_format((float) $package->level_price, 2)]) }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
                             <div>
-                                <label for="package_assignments_{{ $index }}_quantity" class="text-sm font-semibold text-slate-700">{{ __('Quantity') }}</label>
-                                <input id="package_assignments_{{ $index }}_quantity" name="package_assignments[{{ $index }}][quantity]" type="number" min="1" max="50" value="{{ $assignment['quantity'] }}" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                <label for="package_assignments_{{ $index }}_discount_id" class="text-sm font-semibold text-slate-700">{{ __('Discount') }}</label>
+                                <select id="package_assignments_{{ $index }}_discount_id" name="package_assignments[{{ $index }}][discount_id]" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                    <option value="">{{ __('No discount') }}</option>
+                                    @foreach($discounts as $discount)
+                                        <option value="{{ $discount->id }}" @selected((string) ($assignment['discount_id'] ?? '') === (string) $discount->id)>
+                                            {{ $discount->name }} ({{ $discount->type === 'percentage' ? $discount->amount . '%' : $discount->amount . ' fixed' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="package_assignments_{{ $index }}_levels_count" class="text-sm font-semibold text-slate-700">{{ __('Levels') }}</label>
+                                <input id="package_assignments_{{ $index }}_levels_count" name="package_assignments[{{ $index }}][levels_count]" type="number" min="1" max="50" value="{{ $assignment['levels_count'] }}" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                             </div>
 
                             <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100" data-package-assignment-remove>
@@ -268,7 +281,8 @@
 
                 @error('package_assignments')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 @error('package_assignments.*.package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                @error('package_assignments.*.quantity')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @error('package_assignments.*.discount_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                @error('package_assignments.*.levels_count')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
             @endif
         </div>
 
@@ -402,34 +416,35 @@
 
                 document.querySelectorAll('[data-package-assignment-list]').forEach((list) => {
                     const addButton = list.parentElement.querySelector('[data-package-assignment-add]');
-                    const quantityLabel = @js(__('Quantity'));
+                    const levelsLabel = @js(__('Levels'));
 
                     const refreshRows = () => {
                         list.querySelectorAll('[data-package-assignment-row]').forEach((row, index) => {
                             row.querySelectorAll('select, input').forEach((field) => {
-                                const key = field.name.includes('[quantity]') ? 'quantity' : 'package_id';
+                                let key = 'package_id';
+                                if (field.name.includes('[levels_count]')) key = 'levels_count';
+                                if (field.name.includes('[discount_id]')) key = 'discount_id';
                                 field.name = `package_assignments[${index}][${key}]`;
                                 field.id = `package_assignments_${index}_${key}`;
                             });
 
                             row.querySelectorAll('label').forEach((label) => {
-                                const field = label.textContent.trim() === quantityLabel ? 'quantity' : 'package_id';
+                                let field = 'package_id';
+                                if (label.textContent.trim() === levelsLabel) field = 'levels_count';
+                                if (label.textContent.trim() === @js(__('Discount'))) field = 'discount_id';
                                 label.setAttribute('for', `package_assignments_${index}_${field}`);
                             });
                         });
                     };
 
                     const clearRow = (row) => {
-                        const select = row.querySelector('select');
-                        const quantity = row.querySelector('input[type="number"]');
+                        const packageSelect = row.querySelector('select[name$="[package_id]"]');
+                        const discountSelect = row.querySelector('select[name$="[discount_id]"]');
+                        const levelsCount = row.querySelector('input[type="number"]');
 
-                        if (select) {
-                            select.value = '';
-                        }
-
-                        if (quantity) {
-                            quantity.value = '1';
-                        }
+                        if (packageSelect) packageSelect.value = '';
+                        if (discountSelect) discountSelect.value = '';
+                        if (levelsCount) levelsCount.value = '1';
                     };
 
                     list.addEventListener('click', (event) => {

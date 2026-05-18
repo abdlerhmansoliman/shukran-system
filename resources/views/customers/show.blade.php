@@ -284,7 +284,12 @@
                                 <div class="grid gap-3 border-t border-slate-200 px-4 py-3 text-sm first:border-t-0 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_7rem_7rem] lg:items-center">
                                     <div>
                                         <p class="font-semibold text-slate-900">{{ $customerPackage->package?->name ?: __('Unknown package') }}</p>
-                                        <p class="mt-1 text-xs text-slate-500">{{ __('Levels: :count', ['count' => $customerPackage->package?->levels_count ?? '—']) }}</p>
+                                        <p class="mt-1 text-xs text-slate-500">
+                                            {{ __('Levels: :count', ['count' => $customerPackage->package?->levels_count ?? '—']) }}
+                                            @if($customerPackage->discountTemplate)
+                                                <span class="ml-2 text-rose-600 font-medium">({{ $customerPackage->discountTemplate->name }} - {{ number_format((float)$customerPackage->discount, 2) }})</span>
+                                            @endif
+                                        </p>
                                     </div>
 
                                     <div>

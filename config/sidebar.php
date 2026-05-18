@@ -80,6 +80,18 @@ return [
                     ],
                 ],
                 [
+                    'title' => 'Discounts',
+                    'subtitle' => 'Discount templates',
+                    'route' => 'discounts.index',
+                    'active' => ['discounts.*'],
+                    'icon' => [
+                        'paths' => [
+                            'M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                            'M9 9h.01M15 15h.01M9 15l6-6',
+                        ],
+                    ],
+                ],
+                [
                     'title' => 'Levels',
                     'subtitle' => 'Placement level list',
                     'route' => 'levels.index',

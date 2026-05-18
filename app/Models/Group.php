@@ -50,6 +50,11 @@ class Group extends Model
         return $this->hasMany(GroupEnrollment::class);
     }
 
+    public function activeEnrollments()
+    {
+        return $this->hasMany(GroupEnrollment::class)->where('status', 'active');
+    }
+
     public function customers()
     {
         return $this->belongsToMany(Customer::class, 'group_enrollments')
