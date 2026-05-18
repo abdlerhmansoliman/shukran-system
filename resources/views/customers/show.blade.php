@@ -37,6 +37,12 @@
                     {{ __('Record Payment') }}
                 </a>
                 <a
+                    href="{{ route('customers.wallet.top-ups.create', $customer) }}"
+                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    {{ __('Top Up Wallet') }}
+                </a>
+                <a
                     href="{{ route('customers.edit', $customer) }}"
                     class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 >
@@ -118,6 +124,10 @@
                                 <p class="mt-1">{{ number_format((float) $totalPaidAmount, 2) }}</p>
                             </div>
                             <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                <p class="font-medium text-slate-700">{{ __('Wallet Balance') }}</p>
+                                <p class="mt-1">{{ number_format((float) $customer->wallet_balance, 2) }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
                                 <p class="font-medium text-slate-700">{{ __('Remaining') }}</p>
                                 <p class="mt-1">{{ number_format((float) $totalRemainingAmount, 2) }}</p>
                             </div>
@@ -171,6 +181,10 @@
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Customer Type') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ __(\Illuminate\Support\Str::headline($customer->customer_type ?? 'new')) }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Wallet Balance') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customer->wallet_balance, 2) }}</p>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>

@@ -10,6 +10,8 @@ class Payment extends Model
 {
     use HasFactory;
 
+    public const METHOD_WALLET_BALANCE = 'wallet_balance';
+
     protected $fillable = [
         'payable_type',
         'payable_id',

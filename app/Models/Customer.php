@@ -27,6 +27,7 @@ class Customer extends Model
         'gender',
         'address',
         'country_id',
+        'wallet_balance',
         'customer_type',
         'tester_id',
         'placement_month',
@@ -37,6 +38,7 @@ class Customer extends Model
     {
         return [
             'age' => 'integer',
+            'wallet_balance' => 'decimal:2',
             'placement_month' => 'date',
         ];
     }

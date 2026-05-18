@@ -16,12 +16,20 @@
                 <p class="mt-2 text-sm text-slate-500">{{ __('Record an incoming payment for :name.', ['name' => $fullName ?: __('Unnamed customer')]) }}</p>
             </div>
 
-            <a
-                href="{{ route('customers.show', $customer) }}"
-                class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-            >
-                {{ __('Back to Customer') }}
-            </a>
+            <div class="flex flex-wrap gap-3">
+                <a
+                    href="{{ route('customers.wallet.top-ups.create', $customer) }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    {{ __('Top Up Wallet') }}
+                </a>
+                <a
+                    href="{{ route('customers.show', $customer) }}"
+                    class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                >
+                    {{ __('Back to Customer') }}
+                </a>
+            </div>
         </div>
 
         @if($errors->any())
@@ -43,6 +51,10 @@
                 <div class="rounded-2xl bg-slate-50 px-4 py-3">
                     <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Remaining') }}</p>
                     <p class="mt-2 text-sm font-semibold text-slate-900">{{ number_format((float) $customerPackages->sum('remaining_amount'), 2) }}</p>
+                </div>
+                <div class="rounded-2xl bg-slate-50 px-4 py-3">
+                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Wallet Balance') }}</p>
+                    <p class="mt-2 text-sm font-semibold text-slate-900">{{ number_format((float) $customer->wallet_balance, 2) }}</p>
                 </div>
             </div>
 

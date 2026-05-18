@@ -28,12 +28,22 @@ class DashboardController extends Controller
         $incomingThisMonth = Payment::query()
             ->where('direction', 'incoming')
             ->where('status', 'completed')
+            ->where(function (Builder $query) {
+                $query
+                    ->whereNull('method')
+                    ->orWhere('method', '!=', Payment::METHOD_WALLET_BALANCE);
+            })
             ->whereBetween('paid_at', [$monthStart, $monthEnd])
             ->sum('amount');
 
         $outgoingThisMonth = Payment::query()
             ->where('direction', 'outgoing')
             ->where('status', 'completed')
+            ->where(function (Builder $query) {
+                $query
+                    ->whereNull('method')
+                    ->orWhere('method', '!=', Payment::METHOD_WALLET_BALANCE);
+            })
             ->whereBetween('paid_at', [$monthStart, $monthEnd])
             ->sum('amount');
 

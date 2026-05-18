@@ -20,6 +20,17 @@
                         'cancelled' => 'bg-slate-100 text-slate-600 ring-slate-500/20',
                         default => 'bg-amber-50 text-amber-700 ring-amber-600/20',
                     };
+                    $purpose = $payment->payroll
+                        ? __('Payroll Payment')
+                        : ($payment->customerPackage
+                            ? ($payment->direction === 'outgoing' && $payment->method === \App\Models\Payment::METHOD_WALLET_BALANCE
+                                ? __('Subscription Refund')
+                                : __('Subscription Payment'))
+                            : __('Wallet Top Up'));
+                    $methodLabel = match ($payment->method) {
+                        \App\Models\Payment::METHOD_WALLET_BALANCE => __('Wallet Balance'),
+                        default => $payment->paymentMethod?->name ?: $payment->method ?: __('Not specified'),
+                    };
                 @endphp
                 <div class="rounded-2xl border border-slate-200 p-4">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -40,8 +51,12 @@
 
                     <div class="mt-4 grid gap-3 sm:grid-cols-2">
                         <div>
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Purpose') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-900">{{ $purpose }}</p>
+                        </div>
+                        <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Method') }}</p>
-                            <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->paymentMethod?->name ?: $payment->method ?: __('Not specified') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-slate-900">{{ $methodLabel }}</p>
                         </div>
                         @if($payment->customerPackage)
                             <div>

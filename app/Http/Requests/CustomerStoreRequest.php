@@ -73,6 +73,7 @@ class CustomerStoreRequest extends FormRequest
             'package_assignments.*.package_id' => ['required', Rule::exists('packages', 'id')->where('status', 'active')],
             'package_assignments.*.quantity' => ['required', 'integer', 'min:1', 'max:50'],
             'age' => ['nullable', 'integer', 'min:0', 'max:120'],
+            'wallet_balance' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:255'],
             'country_id' => ['nullable', 'exists:countries,id'],
@@ -91,6 +92,7 @@ class CustomerStoreRequest extends FormRequest
         unset($validated['package_id'], $validated['package_assignments']);
 
         $validated['created_by'] = $this->user()?->id;
+        $validated['wallet_balance'] = round((float) ($validated['wallet_balance'] ?? 0), 2);
 
         return $validated;
     }

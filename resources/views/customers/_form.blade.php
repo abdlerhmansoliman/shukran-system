@@ -95,6 +95,12 @@
                 </div>
 
                 <div>
+                    <label for="wallet_balance" class="text-sm font-semibold text-slate-700">{{ __('Wallet Balance') }}</label>
+                    <input id="wallet_balance" name="wallet_balance" type="number" min="0" step="0.01" value="{{ old('wallet_balance', $customer?->wallet_balance ?? '0.00') }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('wallet_balance')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
                     <label for="gender" class="text-sm font-semibold text-slate-700">{{ __('Gender') }}</label>
                     <select id="gender" name="gender" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
@@ -202,10 +208,9 @@
                             <div class="flex justify-start lg:justify-end">
                                 @if($subscription->status === 'active')
                                     <button
-                                        type="submit"
-                                        form="remove_subscription_{{ $subscription->id }}"
+                                        type="button"
                                         @disabled($hasActiveEnrollment)
-                                        onclick="return confirm(@js(__('Remove this subscription from the customer?')))"
+                                        x-on:click="$dispatch('open-modal', 'cancel-subscription-{{ $subscription->id }}')"
                                         class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
                                     >
                                         {{ __('Remove') }}
@@ -320,6 +325,66 @@
                     @csrf
                     @method('DELETE')
                 </form>
+
+                <x-modal name="cancel-subscription-{{ $subscription->id }}" :show="false" maxWidth="lg" focusable>
+                    <form method="POST" action="{{ route('customers.subscriptions.destroy', [$customer, $subscription]) }}" class="p-6">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="cancel_subscription_id" value="{{ $subscription->id }}">
+
+                        <div>
+                            <h2 class="text-lg font-semibold text-slate-900">{{ __('Cancel Subscription') }}</h2>
+                            <p class="mt-2 text-sm text-slate-600">{{ __('Remove this subscription from the customer?') }}</p>
+                        </div>
+
+                        <div class="mt-5 rounded-2xl bg-slate-50 px-4 py-3">
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Paid Amount') }}</p>
+                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ number_format((float) $subscription->paid_amount, 2) }}</p>
+                        </div>
+
+                        <div class="mt-5">
+                            <label for="refund_amount_{{ $subscription->id }}" class="block text-sm font-semibold text-slate-900">{{ __('Refund Amount') }}</label>
+                            <p class="mt-1 text-xs text-slate-500">
+                                {{ (float) $subscription->paid_amount > 0
+                                    ? __('Enter the amount to return to the customer wallet.')
+                                    : __('No paid amount is available to return.') }}
+                            </p>
+                            <input
+                                id="refund_amount_{{ $subscription->id }}"
+                                name="refund_amount"
+                                type="number"
+                                min="0"
+                                max="{{ number_format((float) $subscription->paid_amount, 2, '.', '') }}"
+                                step="0.01"
+                                value="{{ (string) old('cancel_subscription_id') === (string) $subscription->id
+                                    ? old('refund_amount')
+                                    : ((float) $subscription->paid_amount > 0 ? number_format((float) $subscription->paid_amount, 2, '.', '') : '0.00') }}"
+                                @disabled((float) $subscription->paid_amount <= 0)
+                                class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50"
+                            >
+                            <p class="mt-2 text-xs text-slate-500">{{ __('Leave it as 0 to cancel without a refund.') }}</p>
+                            @if((string) old('cancel_subscription_id') === (string) $subscription->id)
+                                @error('refund_amount')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            @endif
+                        </div>
+
+                        <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                x-on:click="$dispatch('close-modal', 'cancel-subscription-{{ $subscription->id }}')"
+                                class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            >
+                                {{ __('Keep Subscription') }}
+                            </button>
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700"
+                            >
+                                {{ __('Cancel Subscription') }}
+                            </button>
+                        </div>
+                    </form>
+                </x-modal>
             @endif
         @endforeach
     @endpush
@@ -329,6 +394,12 @@
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+                @if(old('cancel_subscription_id'))
+                    window.dispatchEvent(new CustomEvent('open-modal', {
+                        detail: 'cancel-subscription-{{ old('cancel_subscription_id') }}'
+                    }));
+                @endif
+
                 document.querySelectorAll('[data-package-assignment-list]').forEach((list) => {
                     const addButton = list.parentElement.querySelector('[data-package-assignment-add]');
                     const quantityLabel = @js(__('Quantity'));

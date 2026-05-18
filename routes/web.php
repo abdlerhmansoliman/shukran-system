@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('customers/{customer}/subscriptions/{customerPackage}', [CustomerController::class, 'destroySubscription'])->name('customers.subscriptions.destroy');
     Route::get('customers/{customer}/payments/create', [CustomerController::class, 'createPayment'])->name('customers.payments.create');
     Route::post('customers/{customer}/payments', [CustomerController::class, 'storePayment'])->name('customers.payments.store');
+    Route::get('customers/{customer}/wallet/top-up', [CustomerController::class, 'createWalletTopUp'])->name('customers.wallet.top-ups.create');
+    Route::post('customers/{customer}/wallet/top-up', [CustomerController::class, 'storeWalletTopUp'])->name('customers.wallet.top-ups.store');
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');

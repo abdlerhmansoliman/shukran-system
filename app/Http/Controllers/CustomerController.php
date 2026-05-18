@@ -9,6 +9,7 @@ use App\Http\Requests\CustomerPackageStoreRequest;
 use App\Http\Requests\CustomerPaymentStoreRequest;
 use App\Http\Requests\CustomerStoreRequest;
 use App\Http\Requests\CustomerUpdateRequest;
+use App\Http\Requests\CustomerWalletTopUpStoreRequest;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\Customer;
@@ -16,8 +17,10 @@ use App\Models\CustomerPackage;
 use App\Models\Group;
 use App\Models\Level;
 use App\Models\Package;
+use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -113,17 +116,23 @@ class CustomerController extends Controller
 
     public function storePackage(CustomerPackageStoreRequest $request, Customer $customer)
     {
-        $this->createPackageAssignments($customer, [[
-            'package_id' => $request->packageId(),
-            'quantity' => $request->quantity(),
-        ]], $request->user()?->id);
+        DB::transaction(function () use ($request, $customer) {
+            $lockedCustomer = Customer::query()
+                ->lockForUpdate()
+                ->findOrFail($customer->id);
+
+            $this->createPackageAssignments($lockedCustomer, [[
+                'package_id' => $request->packageId(),
+                'quantity' => $request->quantity(),
+            ]], $request->user()?->id);
+        });
 
         return redirect()
             ->route('customers.show', $customer)
             ->with('success', __('Subscription added to customer successfully.'));
     }
 
-    public function destroySubscription(Customer $customer, CustomerPackage $customerPackage)
+    public function destroySubscription(Request $request, Customer $customer, CustomerPackage $customerPackage)
     {
         abort_unless((int) $customerPackage->customer_id === (int) $customer->id, 404);
 
@@ -135,12 +144,38 @@ class CustomerController extends Controller
             return back()->with('error', __('This subscription cannot be removed while it is reserved by a group enrollment.'));
         }
 
-        if ($customerPackage->status !== 'cancelled') {
-            $customerPackage->update([
+        $validated = $request->validate([
+            'cancel_subscription_id' => ['nullable', 'integer'],
+            'refund_amount' => ['nullable', 'numeric', 'min:0', 'max:'.(float) $customerPackage->paid_amount],
+        ], [
+            'refund_amount.max' => __('The refund amount cannot be greater than the paid amount.'),
+        ]);
+
+        DB::transaction(function () use ($request, $customer, $customerPackage, $validated) {
+            $lockedCustomer = Customer::query()
+                ->lockForUpdate()
+                ->findOrFail($customer->id);
+
+            $lockedCustomerPackage = CustomerPackage::query()
+                ->where('customer_id', $lockedCustomer->id)
+                ->lockForUpdate()
+                ->findOrFail($customerPackage->id);
+
+            if ($lockedCustomerPackage->status === 'cancelled') {
+                return;
+            }
+
+            $refundAmount = round((float) ($validated['refund_amount'] ?? 0), 2);
+
+            if ($refundAmount > 0) {
+                $this->refundCancelledSubscriptionToWallet($lockedCustomer, $lockedCustomerPackage, $refundAmount, $request->user()?->id);
+            }
+
+            $lockedCustomerPackage->update([
                 'status' => 'cancelled',
                 'end_date' => now()->toDateString(),
             ]);
-        }
+        });
 
         return back()->with('success', __('Subscription removed from customer successfully.'));
     }
@@ -163,6 +198,44 @@ class CustomerController extends Controller
                 ->orderBy('name')
                 ->get(),
         ]);
+    }
+
+    public function createWalletTopUp(Customer $customer)
+    {
+        return view('customers.wallets.top-up', [
+            'customer' => $customer,
+            'paymentMethods' => PaymentMethod::query()
+                ->where('status', 'active')
+                ->orderBy('name')
+                ->get(),
+        ]);
+    }
+
+    public function storeWalletTopUp(CustomerWalletTopUpStoreRequest $request, Customer $customer)
+    {
+        DB::transaction(function () use ($request, $customer) {
+            $lockedCustomer = Customer::query()
+                ->lockForUpdate()
+                ->findOrFail($customer->id);
+
+            $paymentData = $request->paymentData();
+
+            if ($paymentData['status'] !== 'completed') {
+                $lockedCustomer->payments()->create($paymentData);
+
+                return;
+            }
+
+            $this->applyTopUpToOutstandingBalances(
+                $lockedCustomer,
+                $paymentData,
+                $request->user()?->id
+            );
+        });
+
+        return redirect()
+            ->route('customers.show', $customer)
+            ->with('success', __('Wallet balance updated successfully.'));
     }
 
     public function storePayment(CustomerPaymentStoreRequest $request, Customer $customer)
@@ -252,7 +325,7 @@ class CustomerController extends Controller
 
     private function createPackageAssignment(Customer $customer, Package $package, ?int $userId): void
     {
-        $customer->customerPackages()->create([
+        $customerPackage = $customer->customerPackages()->create([
             'package_id' => $package->id,
             'price' => $package->price,
             'discount' => 0,
@@ -266,6 +339,128 @@ class CustomerController extends Controller
             'status' => 'active',
             'created_by' => $userId,
         ]);
+
+        $this->applyWalletBalanceToNewSubscription($customer, $customerPackage, $userId);
+    }
+
+    private function adjustWalletBalance(Customer $customer, float $amount): void
+    {
+        $walletBalance = max(round((float) $customer->wallet_balance + $amount, 2), 0);
+
+        $customer->update([
+            'wallet_balance' => $walletBalance,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $paymentData
+     */
+    private function applyTopUpToOutstandingBalances(Customer $customer, array $paymentData, ?int $userId): void
+    {
+        $remainingTopUpAmount = round((float) $paymentData['amount'], 2);
+
+        $customerPackages = CustomerPackage::query()
+            ->where('customer_id', $customer->id)
+            ->where('status', 'active')
+            ->where('remaining_amount', '>', 0)
+            ->orderBy('start_date')
+            ->orderBy('created_at')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($customerPackages as $customerPackage) {
+            if ($remainingTopUpAmount <= 0) {
+                break;
+            }
+
+            $appliedAmount = min($remainingTopUpAmount, (float) $customerPackage->remaining_amount);
+
+            if ($appliedAmount <= 0) {
+                continue;
+            }
+
+            $customer->payments()->create([
+                'customer_package_id' => $customerPackage->id,
+                'amount' => $appliedAmount,
+                'status' => $paymentData['status'],
+                'payment_method_id' => $paymentData['payment_method_id'],
+                'reference' => $paymentData['reference'],
+                'paid_at' => $paymentData['paid_at'],
+                'notes' => $paymentData['notes'],
+                'direction' => $paymentData['direction'],
+                'created_by' => $userId,
+            ]);
+
+            $this->applyCustomerPackagePayment(
+                $customerPackage,
+                $appliedAmount,
+                $paymentData['paid_at']
+            );
+
+            $remainingTopUpAmount = round($remainingTopUpAmount - $appliedAmount, 2);
+        }
+
+        if ($remainingTopUpAmount <= 0) {
+            return;
+        }
+
+        $customer->payments()->create([
+            ...$paymentData,
+            'amount' => $remainingTopUpAmount,
+        ]);
+
+        $this->adjustWalletBalance($customer, $remainingTopUpAmount);
+    }
+
+    private function applyWalletBalanceToNewSubscription(Customer $customer, CustomerPackage $customerPackage, ?int $userId): void
+    {
+        $availableWalletBalance = round((float) $customer->wallet_balance, 2);
+
+        if ($availableWalletBalance <= 0) {
+            return;
+        }
+
+        $amount = min($availableWalletBalance, (float) $customerPackage->remaining_amount);
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        $customer->payments()->create([
+            'customer_package_id' => $customerPackage->id,
+            'amount' => $amount,
+            'status' => 'completed',
+            'payment_method_id' => null,
+            'method' => Payment::METHOD_WALLET_BALANCE,
+            'paid_at' => now()->toDateString(),
+            'notes' => null,
+            'direction' => 'incoming',
+            'created_by' => $userId,
+        ]);
+
+        $this->adjustWalletBalance($customer, -$amount);
+        $this->applyCustomerPackagePayment($customerPackage, $amount, now()->toDateString());
+    }
+
+    private function refundCancelledSubscriptionToWallet(Customer $customer, CustomerPackage $customerPackage, float $refundAmount, ?int $userId): void
+    {
+        if ($refundAmount <= 0) {
+            return;
+        }
+
+        $customer->payments()->create([
+            'customer_package_id' => $customerPackage->id,
+            'amount' => $refundAmount,
+            'status' => 'completed',
+            'payment_method_id' => null,
+            'method' => Payment::METHOD_WALLET_BALANCE,
+            'paid_at' => now()->toDateString(),
+            'notes' => __('Subscription refund was returned to the customer wallet.'),
+            'direction' => 'outgoing',
+            'created_by' => $userId,
+        ]);
+
+        $this->adjustWalletBalance($customer, $refundAmount);
     }
 
     private function applyCustomerPackagePayment(CustomerPackage $customerPackage, float $amount, ?string $paidAt): void

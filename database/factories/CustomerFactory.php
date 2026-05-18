@@ -54,6 +54,7 @@ class CustomerFactory extends Factory
             'category_id' => Category::query()->children()->inRandomOrder()->value('id'),
             'created_by' => null,
             'age' => fake()->numberBetween(6, 55),
+            'wallet_balance' => fake()->randomFloat(2, 0, 5000),
             'gender' => fake()->randomElement(['male', 'female']),
             'address' => fake()->address(),
             'country_id' => Country::query()->inRandomOrder()->value('id'),
