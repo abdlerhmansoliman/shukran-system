@@ -13,6 +13,7 @@ use App\Models\Level;
 use App\Models\User;
 use App\Services\GroupEnrollmentService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class GroupController extends Controller
@@ -23,16 +24,19 @@ class GroupController extends Controller
 
     public function index(GroupDataTable $datatable)
     {
+        Gate::authorize('view groups');
         return $datatable->render('groups.index');
     }
 
     public function create()
     {
+        Gate::authorize('create groups');
         return view('groups.create', $this->formData());
     }
 
     public function store(GroupStoreRequest $request)
     {
+        Gate::authorize('create groups');
         $group = Group::query()->create($request->groupData());
 
         return redirect()
@@ -42,6 +46,7 @@ class GroupController extends Controller
 
     public function show(Group $group)
     {
+        Gate::authorize('view groups');
         $group->load([
             'level',
             'category.parent',
@@ -60,6 +65,7 @@ class GroupController extends Controller
 
     public function edit(Group $group)
     {
+        Gate::authorize('edit groups');
         return view('groups.edit', [
             'group' => $group,
             ...$this->formData(),
@@ -68,6 +74,7 @@ class GroupController extends Controller
 
     public function update(GroupUpdateRequest $request, Group $group)
     {
+        Gate::authorize('edit groups');
         $data = $request->groupData();
 
         if (($data['status'] ?? null) === GroupStatus::Active->value && $group->status !== GroupStatus::Active->value) {
@@ -96,6 +103,7 @@ class GroupController extends Controller
 
     public function destroy(Group $group)
     {
+        Gate::authorize('delete groups');
         if ($group->groupEnrollments()->exists()) {
             return redirect()
                 ->route('groups.index')

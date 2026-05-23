@@ -10,12 +10,14 @@
                 <p class="mt-2 text-sm text-slate-500">{{ __('Manage discount templates that can be applied to customer packages.') }}</p>
             </div>
 
-            <a
-                href="{{ route('discounts.create') }}"
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            >
-                {{ __('Add Discount') }}
-            </a>
+            @can('create discounts')
+                <a
+                    href="{{ route('discounts.create') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Add Discount') }}
+                </a>
+            @endcan
         </div>
 
         @if(session('success'))
@@ -47,12 +49,16 @@
                                 </span>
                             </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                                <a href="{{ route('discounts.edit', $discount) }}" class="text-slate-600 hover:text-slate-900">{{ __('Edit') }}</a>
-                                <form action="{{ route('discounts.destroy', $discount) }}" method="POST" class="inline-block ml-3">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-rose-600 hover:text-rose-900" onclick="return confirm('{{ __('Are you sure?') }}')">{{ __('Delete') }}</button>
-                                </form>
+                                @can('edit discounts')
+                                    <a href="{{ route('discounts.edit', $discount) }}" class="text-slate-600 hover:text-slate-900">{{ __('Edit') }}</a>
+                                @endcan
+                                @can('delete discounts')
+                                    <form action="{{ route('discounts.destroy', $discount) }}" method="POST" class="inline-block ml-3">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-rose-600 hover:text-rose-900" onclick="return confirm('{{ __('Are you sure?') }}')">{{ __('Delete') }}</button>
+                                    </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty

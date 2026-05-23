@@ -7,22 +7,26 @@ use App\Http\Requests\CategoryStoreRequest;
 use App\Http\Requests\CategoryUpdateRequest;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class CategoryController extends Controller
 {
     public function index(CategoryDataTable $datatable)
     {
+        Gate::authorize('view categories');
         return $datatable->render('categories.index');
     }
 
     public function create()
     {
+        Gate::authorize('create categories');
         return view('categories.create', $this->formData());
     }
 
     public function store(CategoryStoreRequest $request)
     {
+        Gate::authorize('create categories');
         $category = DB::transaction(function () use ($request) {
             $parent = null;
 
@@ -68,6 +72,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
+        Gate::authorize('edit categories');
         return view('categories.edit', [
             'category' => $category,
             ...$this->formData($category),
@@ -76,6 +81,7 @@ class CategoryController extends Controller
 
     public function update(CategoryUpdateRequest $request, Category $category)
     {
+        Gate::authorize('edit categories');
         $category->update($request->categoryData());
 
         return redirect()
@@ -85,6 +91,7 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        Gate::authorize('delete categories');
         if ($category->children()->exists()) {
             return redirect()
                 ->route('categories.index')

@@ -17,6 +17,17 @@
                 </div>
 
                 <div>
+                    <label for="role_name" class="text-sm font-semibold text-slate-700">{{ __('System Role') }}</label>
+                    <select id="role_name" name="role_name" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('No role assigned') }}</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->name }}" @selected((string) old('role_name', $employee?->user?->roles?->first()?->name) === (string) $role->name)>{{ $role->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('role_name')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
                     <label for="email" class="text-sm font-semibold text-slate-700">{{ __('Email') }}</label>
                     <input id="email" name="email" type="email" value="{{ old('email', $employee?->user?->email) }}" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('email')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror

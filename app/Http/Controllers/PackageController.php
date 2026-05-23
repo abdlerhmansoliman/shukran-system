@@ -7,21 +7,25 @@ use App\Enums\PackageStatus;
 use App\Http\Requests\PackageStoreRequest;
 use App\Http\Requests\PackageUpdateRequest;
 use App\Models\Package;
+use Illuminate\Support\Facades\Gate;
 
 class PackageController extends Controller
 {
     public function index(PackageDataTable $datatable)
     {
+        Gate::authorize('view packages');
         return $datatable->render('packages.index');
     }
 
     public function create()
     {
+        Gate::authorize('create packages');
         return view('packages.create', $this->formData());
     }
 
     public function store(PackageStoreRequest $request)
     {
+        Gate::authorize('create packages');
         $package = Package::query()->create($request->packageData());
 
         return redirect()
@@ -31,6 +35,7 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
+        Gate::authorize('edit packages');
         return view('packages.edit', [
             'package' => $package,
             ...$this->formData(),
@@ -39,6 +44,7 @@ class PackageController extends Controller
 
     public function update(PackageUpdateRequest $request, Package $package)
     {
+        Gate::authorize('edit packages');
         $package->update($request->packageData());
 
         return redirect()
@@ -48,6 +54,7 @@ class PackageController extends Controller
 
     public function destroy(Package $package)
     {
+        Gate::authorize('delete packages');
         if ($package->customerPackages()->exists()) {
             return redirect()
                 ->route('packages.index')

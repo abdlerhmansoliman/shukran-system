@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\PaymentMethod;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CustomerWalletController extends Controller
 {
@@ -16,6 +17,7 @@ class CustomerWalletController extends Controller
 
     public function create(Customer $customer)
     {
+        Gate::authorize('edit customers');
         return view('customers.wallets.top-up', [
             'customer' => $customer,
             'paymentMethods' => PaymentMethod::query()
@@ -27,6 +29,7 @@ class CustomerWalletController extends Controller
 
     public function store(CustomerWalletTopUpStoreRequest $request, Customer $customer)
     {
+        Gate::authorize('edit customers');
         DB::transaction(function () use ($request, $customer) {
             $lockedCustomer = Customer::query()
                 ->lockForUpdate()

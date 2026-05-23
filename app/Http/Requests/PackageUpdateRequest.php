@@ -25,7 +25,6 @@ class PackageUpdateRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('packages', 'name')->ignore($packageId)],
             'levels_count' => ['required', 'integer', 'min:1', 'max:999'],
-            'price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'level_price' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'status' => ['required', Rule::in(PackageStatus::values())],
         ];

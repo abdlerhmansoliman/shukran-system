@@ -28,11 +28,6 @@
             @error('levels_count')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
         </div>
 
-        <div>
-            <label for="price" class="text-sm font-semibold text-slate-700">{{ __('Total Price') }}</label>
-            <input id="price" name="price" type="number" min="0" step="0.01" value="{{ old('price', $package?->price ?? 0) }}" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-            @error('price')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-        </div>
 
         <div>
             <label for="level_price" class="text-sm font-semibold text-slate-700">{{ __('Level Price') }}</label>

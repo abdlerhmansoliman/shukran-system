@@ -13,12 +13,11 @@ use App\Http\Controllers\GroupEnrollmentController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/login');
 
 Route::get('/locale/{locale}', function (Request $request, string $locale) {
     abort_unless(array_key_exists($locale, config('locales.supported', [])), 404);
@@ -58,6 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('employees/{employee}/payrolls/create', [EmployeeController::class, 'createPayroll'])->name('employees.payrolls.create');
     Route::post('employees/{employee}/payrolls', [EmployeeController::class, 'storePayroll'])->name('employees.payrolls.store');
     Route::resource('employees', EmployeeController::class);
+    Route::resource('roles', RoleController::class)->except('show');
     Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 });

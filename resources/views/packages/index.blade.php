@@ -10,12 +10,14 @@
                 <p class="mt-2 text-sm text-slate-500">{{ __('Manage plan templates, prices, and availability from one searchable table.') }}</p>
             </div>
 
-            <a
-                href="{{ route('packages.create') }}"
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            >
-                {{ __('Add Package') }}
-            </a>
+            @can('create packages')
+                <a
+                    href="{{ route('packages.create') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Add Package') }}
+                </a>
+            @endcan
         </div>
 
         @if(session('success'))

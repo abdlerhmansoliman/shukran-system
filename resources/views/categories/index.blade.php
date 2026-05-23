@@ -10,12 +10,14 @@
                 <p class="mt-2 text-sm text-slate-500">{{ __('Manage customer and group categories from one searchable table.') }}</p>
             </div>
 
-            <a
-                href="{{ route('categories.create') }}"
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            >
-                {{ __('Add Category') }}
-            </a>
+            @can('create categories')
+                <a
+                    href="{{ route('categories.create') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Add Category') }}
+                </a>
+            @endcan
         </div>
 
         @if(session('success'))

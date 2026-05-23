@@ -26,6 +26,7 @@ return [
                     'subtitle' => 'Manage your client base',
                     'route' => 'customers.index',
                     'active' => ['customers.*'],
+                    'permission' => 'view customers',
                     'icon' => [
                         'paths' => [
                             'M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2',
@@ -37,10 +38,11 @@ return [
                     ],
                 ],
                 [
-                    'title' => 'Groups',
-                    'subtitle' => 'Class groups and enrollments',
+                    'title' => 'Products',
+                    'subtitle' => 'Class products and enrollments',
                     'route' => 'groups.index',
                     'active' => ['groups.*'],
+                    'permission' => 'view groups',
                     'icon' => [
                         'paths' => [
                             'M17 20h5v-2a4 4 0 00-4-4h-1',
@@ -56,6 +58,7 @@ return [
                     'subtitle' => 'Team and payroll records',
                     'route' => 'employees.index',
                     'active' => ['employees.*'],
+                    'permission' => 'view employees',
                     'icon' => [
                         'paths' => [
                             'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2',
@@ -68,56 +71,44 @@ return [
                     ],
                 ],
                 [
-                    'title' => 'Packages',
-                    'subtitle' => 'Plan templates and prices',
-                    'route' => 'packages.index',
-                    'active' => ['packages.*'],
+                    'title' => 'Customization',
+                    'subtitle' => 'System settings',
                     'icon' => [
                         'paths' => [
-                            'M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z',
-                            'M7 7h.01',
+                            'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
+                            'M15 12a3 3 0 11-6 0 3 3 0 016 0z',
                         ],
                     ],
-                ],
-                [
-                    'title' => 'Discounts',
-                    'subtitle' => 'Discount templates',
-                    'route' => 'discounts.index',
-                    'active' => ['discounts.*'],
-                    'icon' => [
-                        'paths' => [
-                            'M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
-                            'M9 9h.01M15 15h.01M9 15l6-6',
+                    'items' => [
+                        [
+                            'title' => 'Packages',
+                            'route' => 'packages.index',
+                            'active' => ['packages.*'],
+                            'permission' => 'view packages',
                         ],
-                    ],
-                ],
-                [
-                    'title' => 'Levels',
-                    'subtitle' => 'Placement level list',
-                    'route' => 'levels.index',
-                    'active' => ['levels.*'],
-                    'icon' => [
-                        'paths' => [
-                            'M4 20h16',
-                            'M6 16h12',
-                            'M8 12h8',
-                            'M10 8h4',
-                            'M12 4v4',
+                        [
+                            'title' => 'Discounts',
+                            'route' => 'discounts.index',
+                            'active' => ['discounts.*'],
+                            'permission' => 'view discounts',
                         ],
-                    ],
-                ],
-                [
-                    'title' => 'Categories',
-                    'subtitle' => 'Customer and group categories',
-                    'route' => 'categories.index',
-                    'active' => ['categories.*'],
-                    'icon' => [
-                        'paths' => [
-                            'M4 6h16',
-                            'M4 12h16',
-                            'M4 18h16',
-                            'M8 6v12',
-                            'M16 6v12',
+                        [
+                            'title' => 'Levels',
+                            'route' => 'levels.index',
+                            'active' => ['levels.*'],
+                            'permission' => 'view levels',
+                        ],
+                        [
+                            'title' => 'Categories',
+                            'route' => 'categories.index',
+                            'active' => ['categories.*'],
+                            'permission' => 'view categories',
+                        ],
+                        [
+                            'title' => 'Roles & Permissions',
+                            'route' => 'roles.index',
+                            'active' => ['roles.*'],
+                            'permission' => 'view roles',
                         ],
                     ],
                 ],

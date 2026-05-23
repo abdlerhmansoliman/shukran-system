@@ -15,6 +15,7 @@ use App\Models\Package;
 use App\Models\User;
 use App\Services\CustomerPackageService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CustomerController extends Controller
 {
@@ -24,6 +25,8 @@ class CustomerController extends Controller
 
     public function index(CustomerDataTable $datatable)
     {
+        Gate::authorize('view customers');
+
         return $datatable->render('customers.index', [
             'groups' => Group::query()
                 ->whereIn('status', [GroupStatus::Planned->value, GroupStatus::Active->value])
@@ -34,11 +37,15 @@ class CustomerController extends Controller
 
     public function create()
     {
+        Gate::authorize('create customers');
+
         return view('customers.create', $this->formData());
     }
 
     public function store(CustomerStoreRequest $request)
     {
+        Gate::authorize('create customers');
+
         $customer = DB::transaction(function () use ($request) {
             $customer = Customer::query()->create($request->customerData());
 
@@ -54,6 +61,8 @@ class CustomerController extends Controller
 
     public function edit(Customer $customer)
     {
+        Gate::authorize('edit customers');
+
         $customer->load([
             'customerPackages' => fn ($query) => $query->with('package')->latest(),
             'customerPackages.groupEnrollments',
@@ -67,6 +76,8 @@ class CustomerController extends Controller
 
     public function update(CustomerUpdateRequest $request, Customer $customer)
     {
+        Gate::authorize('edit customers');
+
         DB::transaction(function () use ($request, $customer) {
             $customer->update($request->customerData());
 
@@ -80,6 +91,8 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        Gate::authorize('view customers');
+
         $customer->load([
             'level',
             'category.parent',

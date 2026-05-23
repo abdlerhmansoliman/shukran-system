@@ -36,6 +36,7 @@ class EmployeeUpdateRequest extends FormRequest
             'salary_type' => ['required', Rule::in(EmployeeSalaryType::values())],
             'hire_date' => ['nullable', 'date'],
             'status' => ['required', Rule::in(EmployeeStatus::values())],
+            'role_name' => ['nullable', 'string', 'exists:roles,name'],
         ];
     }
 

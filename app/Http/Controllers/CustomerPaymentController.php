@@ -8,6 +8,7 @@ use App\Models\CustomerPackage;
 use App\Models\PaymentMethod;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class CustomerPaymentController extends Controller
@@ -18,6 +19,7 @@ class CustomerPaymentController extends Controller
 
     public function create(Customer $customer)
     {
+        Gate::authorize('edit customers');
         $customer->load([
             'customerPackages' => fn ($query) => $query
                 ->with('package')
@@ -38,6 +40,7 @@ class CustomerPaymentController extends Controller
 
     public function store(CustomerPaymentStoreRequest $request, Customer $customer)
     {
+        Gate::authorize('edit customers');
         DB::transaction(function () use ($request, $customer) {
             $customerPackage = CustomerPackage::query()
                 ->where('customer_id', $customer->id)

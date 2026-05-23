@@ -46,36 +46,85 @@
 
                 @foreach($section['items'] as $item)
                     @php
+                        if (isset($item['permission']) && !auth()->user()->can($item['permission'])) {
+                            continue;
+                        }
+                        $hasSubitems = isset($item['items']) && count($item['items']) > 0;
                         $isActive = collect($item['active'] ?? [])->contains(fn ($pattern) => request()->routeIs($pattern));
+                        if ($hasSubitems) {
+                            $isActive = collect($item['items'])->flatMap(fn ($sub) => $sub['active'] ?? [])->contains(fn ($pattern) => request()->routeIs($pattern));
+                        }
                         $isDisabled = $item['disabled'] ?? false;
                         $href = (!$isDisabled && !empty($item['route'])) ? route($item['route']) : null;
                     @endphp
 
-                    @if($href)
-                        <a href="{{ $href }}" class="sidebar-link {{ $isActive ? 'sidebar-link-active' : '' }}">
-                    @else
-                        <div class="sidebar-link {{ $isDisabled ? 'sidebar-link-muted' : '' }} {{ $isActive ? 'sidebar-link-active' : '' }}">
-                    @endif
-                        <span class="sidebar-link-icon">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                @foreach($item['icon']['paths'] ?? [] as $path)
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $path }}" />
+                    @if($hasSubitems)
+                        <div x-data="{ open: {{ $isActive ? 'true' : 'false' }} }" class="space-y-1">
+                            <button @click="open = !open" type="button" class="w-full text-left sidebar-link {{ $isActive ? 'sidebar-link-active' : '' }}">
+                                <span class="sidebar-link-icon">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        @foreach($item['icon']['paths'] ?? [] as $path)
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $path }}" />
+                                        @endforeach
+                                        @foreach($item['icon']['circles'] ?? [] as $circle)
+                                            <circle cx="{{ $circle['cx'] }}" cy="{{ $circle['cy'] }}" r="{{ $circle['r'] }}" stroke-width="1.8" />
+                                        @endforeach
+                                    </svg>
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                    <span class="block truncate">{{ __($item['title']) }}</span>
+                                    @if(!empty($item['subtitle']))
+                                        <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ __($item['subtitle']) }}</span>
+                                    @endif
+                                </span>
+                                <svg class="ml-auto h-4 w-4 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                            <div x-show="open" class="space-y-1 pl-11 mt-1">
+                                @foreach($item['items'] as $subitem)
+                                    @php
+                                        if (isset($subitem['permission']) && !auth()->user()->can($subitem['permission'])) {
+                                            continue;
+                                        }
+                                        $isSubActive = collect($subitem['active'] ?? [])->contains(fn ($pattern) => request()->routeIs($pattern));
+                                        $subHref = !empty($subitem['route']) ? route($subitem['route']) : null;
+                                    @endphp
+                                    <a href="{{ $subHref }}" class="sidebar-link {{ $isSubActive ? 'sidebar-link-active' : '' }} py-2">
+                                        <span class="min-w-0">
+                                            <span class="block truncate text-sm">{{ __($subitem['title']) }}</span>
+                                        </span>
+                                    </a>
                                 @endforeach
-                                @foreach($item['icon']['circles'] ?? [] as $circle)
-                                    <circle cx="{{ $circle['cx'] }}" cy="{{ $circle['cy'] }}" r="{{ $circle['r'] }}" stroke-width="1.8" />
-                                @endforeach
-                            </svg>
-                        </span>
-                        <span class="min-w-0">
-                            <span class="block truncate">{{ __($item['title']) }}</span>
-                            @if(!empty($item['subtitle']))
-                                <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ __($item['subtitle']) }}</span>
-                            @endif
-                        </span>
-                    @if($href)
-                        </a>
-                    @else
+                            </div>
                         </div>
+                    @else
+                        @if($href)
+                            <a href="{{ $href }}" class="sidebar-link {{ $isActive ? 'sidebar-link-active' : '' }}">
+                        @else
+                            <div class="sidebar-link {{ $isDisabled ? 'sidebar-link-muted' : '' }} {{ $isActive ? 'sidebar-link-active' : '' }}">
+                        @endif
+                            <span class="sidebar-link-icon">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    @foreach($item['icon']['paths'] ?? [] as $path)
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="{{ $path }}" />
+                                    @endforeach
+                                    @foreach($item['icon']['circles'] ?? [] as $circle)
+                                        <circle cx="{{ $circle['cx'] }}" cy="{{ $circle['cy'] }}" r="{{ $circle['r'] }}" stroke-width="1.8" />
+                                    @endforeach
+                                </svg>
+                            </span>
+                            <span class="min-w-0">
+                                <span class="block truncate">{{ __($item['title']) }}</span>
+                                @if(!empty($item['subtitle']))
+                                    <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ __($item['subtitle']) }}</span>
+                                @endif
+                            </span>
+                        @if($href)
+                            </a>
+                        @else
+                            </div>
+                        @endif
                     @endif
                 @endforeach
             </div>

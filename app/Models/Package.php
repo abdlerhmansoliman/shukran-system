@@ -9,7 +9,6 @@ class Package extends Model
     protected $fillable = [
         'name',
         'levels_count',
-        'price',
         'level_price',
         'status',
     ];
@@ -18,7 +17,6 @@ class Package extends Model
     {
         return [
             'levels_count' => 'integer',
-            'price' => 'decimal:2',
             'level_price' => 'decimal:2',
         ];
     }

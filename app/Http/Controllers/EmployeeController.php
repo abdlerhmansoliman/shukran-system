@@ -14,26 +14,35 @@ use App\Models\Employee;
 use App\Models\PaymentMethod;
 use App\Models\Payroll;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class EmployeeController extends Controller
 {
     public function index(EmployeeDataTable $datatable)
     {
+        Gate::authorize('view employees');
         return $datatable->render('employees.index');
     }
 
     public function create()
     {
+        Gate::authorize('create employees');
         return view('employees.create', $this->formData());
     }
 
     public function store(EmployeeStoreRequest $request)
     {
+        Gate::authorize('create employees');
         $employee = DB::transaction(function () use ($request) {
             $user = User::query()->create($request->userData());
+            
+            if ($request->has('role_name')) {
+                $user->syncRoles([$request->input('role_name')]);
+            }
 
             return Employee::query()->create([
                 ...$request->employeeData(),
@@ -48,6 +57,7 @@ class EmployeeController extends Controller
 
     public function show(Employee $employee)
     {
+        Gate::authorize('view employees');
         $employee->load([
             'user',
             'department',
@@ -65,6 +75,7 @@ class EmployeeController extends Controller
 
     public function createSalaryPayment(Employee $employee)
     {
+        Gate::authorize('edit employees');
         $employee->load([
             'user',
             'department',
@@ -89,6 +100,7 @@ class EmployeeController extends Controller
 
     public function createPayroll(Employee $employee)
     {
+        Gate::authorize('edit employees');
         $employee->load([
             'user',
             'department',
@@ -105,6 +117,7 @@ class EmployeeController extends Controller
 
     public function storePayroll(EmployeePayrollStoreRequest $request, Employee $employee)
     {
+        Gate::authorize('edit employees');
         DB::transaction(function () use ($request, $employee) {
             $period = $request->period();
 
@@ -122,6 +135,7 @@ class EmployeeController extends Controller
 
     public function storeSalaryPayment(EmployeeSalaryPaymentStoreRequest $request, Employee $employee)
     {
+        Gate::authorize('edit employees');
         DB::transaction(function () use ($request, $employee) {
             $payroll = Payroll::query()
                 ->where('employee_id', $employee->id)
@@ -172,6 +186,7 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
+        Gate::authorize('edit employees');
         $employee->load(['user', 'department']);
 
         return view('employees.edit', [
@@ -182,8 +197,14 @@ class EmployeeController extends Controller
 
     public function update(EmployeeUpdateRequest $request, Employee $employee)
     {
+        Gate::authorize('edit employees');
         DB::transaction(function () use ($request, $employee) {
-            $employee->user()->update($request->userData());
+            $employee->user->update($request->userData());
+            
+            if ($request->has('role_name')) {
+                $employee->user->syncRoles([$request->input('role_name')]);
+            }
+            
             $employee->update($request->employeeData());
         });
 
@@ -194,8 +215,9 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
+        Gate::authorize('delete employees');
         DB::transaction(function () use ($employee) {
-            $employee->user()->update(['is_active' => false]);
+            $employee->user->update(['is_active' => false]);
             $employee->delete();
         });
 
@@ -215,6 +237,9 @@ class EmployeeController extends Controller
                 ->get(),
             'salaryTypes' => EmployeeSalaryType::options(),
             'statuses' => EmployeeStatus::options(),
+            'roles' => Role::query()
+                ->orderBy('name')
+                ->get(),
         ];
     }
 

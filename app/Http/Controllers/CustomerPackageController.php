@@ -10,6 +10,7 @@ use App\Services\CustomerPackageService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class CustomerPackageController extends Controller
 {
@@ -20,6 +21,7 @@ class CustomerPackageController extends Controller
 
     public function store(CustomerPackageStoreRequest $request, Customer $customer)
     {
+        Gate::authorize('edit customers');
         DB::transaction(function () use ($request, $customer) {
             $lockedCustomer = Customer::query()
                 ->lockForUpdate()
@@ -38,6 +40,7 @@ class CustomerPackageController extends Controller
 
     public function destroy(Request $request, Customer $customer, CustomerPackage $customerPackage)
     {
+        Gate::authorize('edit customers');
         abort_unless((int) $customerPackage->customer_id === (int) $customer->id, 404);
 
         $hasActiveEnrollment = $customerPackage->groupEnrollments()

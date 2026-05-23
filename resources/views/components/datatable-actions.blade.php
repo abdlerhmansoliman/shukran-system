@@ -7,25 +7,29 @@
     </a>
 
     @if(Route::has('customers.edit'))
-        <a
-            href="{{ route('customers.edit', $customer->id) }}"
-            class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
-        >
-            {{ __('Edit') }}
-        </a>
+        @can('edit customers')
+            <a
+                href="{{ route('customers.edit', $customer->id) }}"
+                class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+                {{ __('Edit') }}
+            </a>
+        @endcan
     @endif
 
     @if(Route::has('customers.destroy'))
-        <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" class="inline-block">
-            @csrf
-            @method('DELETE')
-            <button
-                type="submit"
-                class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
-                onclick="return confirm('{{ __('Delete this customer?') }}')"
-            >
-                {{ __('Delete') }}
-            </button>
-        </form>
+        @can('delete customers')
+            <form action="{{ route('customers.destroy', $customer->id) }}" method="POST" class="inline-block">
+                @csrf
+                @method('DELETE')
+                <button
+                    type="submit"
+                    class="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-100"
+                    onclick="return confirm('{{ __('Delete this customer?') }}')"
+                >
+                    {{ __('Delete') }}
+                </button>
+            </form>
+        @endcan
     @endif
 </div>

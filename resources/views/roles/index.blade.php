@@ -5,17 +5,17 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Group Management') }}</p>
-                <h1 class="mt-2 text-3xl font-semibold text-slate-900">{{ __('Groups') }}</h1>
-                <p class="mt-2 text-sm text-slate-500">{{ __('Manage class groups, instructors, schedules, and assigned customers from one searchable table.') }}</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Security Management') }}</p>
+                <h1 class="mt-2 text-3xl font-semibold text-slate-900">{{ __('Roles & Permissions') }}</h1>
+                <p class="mt-2 text-sm text-slate-500">{{ __('Manage system roles and their assigned permissions from one organized table.') }}</p>
             </div>
 
-            @can('create groups')
+            @can('create roles')
                 <a
-                    href="{{ route('groups.create') }}"
+                    href="{{ route('roles.create') }}"
                     class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                 >
-                    {{ __('Add Group') }}
+                    {{ __('Add Role') }}
                 </a>
             @endcan
         </div>
@@ -33,7 +33,7 @@
         @endif
 
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            {!! $dataTable->table(['class' => 'group-table min-w-full divide-y divide-slate-200'], true) !!}
+            {!! $dataTable->table(['class' => 'role-table min-w-full divide-y divide-slate-200'], true) !!}
         </div>
     </div>
 </div>

@@ -10,12 +10,14 @@
                 <p class="mt-2 text-sm text-slate-500">{{ __('Review team members, departments, salary types, and employment status from one organized table.') }}</p>
             </div>
 
-            <a
-                href="{{ route('employees.create') }}"
-                class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-            >
-                {{ __('Add Employee') }}
-            </a>
+            @can('create employees')
+                <a
+                    href="{{ route('employees.create') }}"
+                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                >
+                    {{ __('Add Employee') }}
+                </a>
+            @endcan
         </div>
 
         @if(session('success'))
