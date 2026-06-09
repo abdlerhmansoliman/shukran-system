@@ -36,8 +36,19 @@ class EmployeePayrollStoreRequest extends FormRequest
      */
     public function rules(): array
     {
+        $employee = $this->route('employee');
+
         return [
-            'month' => ['required', 'integer', 'min:1', 'max:12'],
+            'month' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:12',
+                Rule::unique('payrolls')->where(function ($query) use ($employee) {
+                    return $query->where('employee_id', $employee?->id)
+                        ->where('year', $this->input('year'));
+                })->ignore($this->route('payroll')), // Ignore if we are explicitly editing a payroll (if that route existed)
+            ],
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'required_working_days' => ['nullable', 'numeric', 'min:0', 'max:999.99'],
             'required_working_hours' => ['nullable', 'numeric', 'min:0', 'max:999.99'],
@@ -50,6 +61,13 @@ class EmployeePayrollStoreRequest extends FormRequest
             'total_deductions' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'status' => ['required', Rule::in(['draft', 'paid'])],
             'notes' => ['nullable', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'month.unique' => __('A payroll record already exists for this employee in the selected month and year.'),
         ];
     }
 

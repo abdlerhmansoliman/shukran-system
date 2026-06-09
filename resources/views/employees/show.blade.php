@@ -169,6 +169,57 @@
             </div>
 
             <div class="space-y-6">
+                {{-- Attendance Summary Card --}}
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between gap-4">
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Attendance This Month') }}</p>
+                        @can('manage attendance')
+                            <a href="{{ route('attendance.monthly', ['month' => now()->month, 'year' => now()->year]) }}" class="text-xs font-semibold text-slate-500 hover:text-slate-700">
+                                {{ __('View All') }} &rarr;
+                            </a>
+                        @endcan
+                    </div>
+
+                    @php
+                        $attWorkingDays = $attendanceSummary['working_days'] ?? 0;
+                        $attPresentDays = $attendanceSummary['present_days'] ?? 0;
+                        $attAbsentDays = $attendanceSummary['total_absent_days'] ?? 0;
+                        $attAbsences = $attendanceSummary['absences'] ?? collect();
+                    @endphp
+
+                    <div class="mt-5 grid grid-cols-3 gap-3">
+                        <div class="rounded-2xl bg-slate-50 px-3 py-3 text-center">
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Working') }}</p>
+                            <p class="mt-1 text-lg font-bold text-slate-900">{{ $attWorkingDays }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-emerald-50 px-3 py-3 text-center">
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600">{{ __('Present') }}</p>
+                            <p class="mt-1 text-lg font-bold text-emerald-700">{{ $attPresentDays }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-rose-50 px-3 py-3 text-center">
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-rose-600">{{ __('Absent') }}</p>
+                            <p class="mt-1 text-lg font-bold text-rose-700">{{ $attAbsentDays }}</p>
+                        </div>
+                    </div>
+
+                    @if($attAbsences->isNotEmpty())
+                        <div class="mt-4 space-y-2">
+                            @foreach($attAbsences->take(5) as $absence)
+                                <div class="flex items-center justify-between rounded-xl border border-slate-100 px-3 py-2">
+                                    <span class="text-sm text-slate-700">{{ $absence->date->format('M d') }}</span>
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $absence->type->value === 'full_day' ? 'bg-rose-100 text-rose-700' : ($absence->type->value === 'half_day' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600') }}">
+                                        {{ $absence->type->label() }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="mt-4 rounded-2xl bg-emerald-50 p-3 text-center">
+                            <p class="text-sm font-medium text-emerald-700">{{ __('Perfect attendance this month!') }}</p>
+                        </div>
+                    @endif
+                </div>
+
                 <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Latest Work Report') }}</p>
 

@@ -12,6 +12,7 @@ use App\Models\Group;
 use App\Models\Level;
 use App\Models\User;
 use App\Services\GroupEnrollmentService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -42,6 +43,40 @@ class GroupController extends Controller
         return redirect()
             ->route('groups.show', $group)
             ->with('success', __('Group created successfully.'));
+    }
+
+    public function availableInstructors(Request $request)
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $startTime = $request->query('start_time');
+        $endTime = $request->query('end_time');
+        $daysOfWeek = (array) $request->query('days_of_week', []);
+        $groupId = $request->query('group_id');
+
+        if (!$startDate || !$endDate || !$startTime || !$endTime) {
+            return response()->json(User::query()->orderBy('name')->get(['id', 'name']));
+        }
+
+        $conflictingInstructorIds = Group::query()
+            ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Planned->value])
+            ->when($groupId, fn($q) => $q->where('id', '!=', $groupId))
+            ->where('start_date', '<=', $endDate)
+            ->where('end_date', '>=', $startDate)
+            ->where('start_time', '<', $endTime)
+            ->where('end_time', '>', $startTime)
+            ->get()
+            ->filter(fn($g) => !empty(array_intersect($g->days_of_week ?? [], $daysOfWeek)))
+            ->pluck('instructor_id')
+            ->unique()
+            ->filter();
+
+        $availableInstructors = User::query()
+            ->whereNotIn('id', $conflictingInstructorIds)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($availableInstructors);
     }
 
     public function show(Group $group)

@@ -7,9 +7,46 @@
     $endDate = old('end_date', $group?->end_date?->format('Y-m-d'));
     $startTime = old('start_time', $group?->start_time ? substr((string) $group->start_time, 0, 5) : null);
     $endTime = old('end_time', $group?->end_time ? substr((string) $group->end_time, 0, 5) : null);
+    $currentInstructorId = old('instructor_id', $group?->instructor_id);
 @endphp
 
-<div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+<div 
+    x-data="{
+        startDate: '{{ $startDate }}',
+        endDate: '{{ $endDate }}',
+        startTime: '{{ $startTime }}',
+        endTime: '{{ $endTime }}',
+        days: {{ json_encode($selectedDays) }},
+        instructors: {{ json_encode($users->map(fn($u) => ['id' => $u->id, 'name' => $u->name])) }},
+        selectedInstructor: '{{ $currentInstructorId }}',
+        isLoading: false,
+
+        async fetchAvailableInstructors() {
+            if (!this.startDate || !this.endDate || !this.startTime || !this.endTime) return;
+            
+            this.isLoading = true;
+            try {
+                const params = new URLSearchParams({
+                    start_date: this.startDate,
+                    end_date: this.endDate,
+                    start_time: this.startTime,
+                    end_time: this.endTime,
+                    group_id: '{{ $group?->id }}'
+                });
+                this.days.forEach(day => params.append('days_of_week[]', day));
+
+                const response = await fetch(`{{ route('groups.available-instructors') }}?${params.toString()}`);
+                this.instructors = await response.json();
+            } catch (error) {
+                console.error('Failed to fetch instructors:', error);
+            } finally {
+                this.isLoading = false;
+            }
+        }
+    }"
+    x-init="$watch('startDate', () => fetchAvailableInstructors()); $watch('endDate', () => fetchAvailableInstructors()); $watch('startTime', () => fetchAvailableInstructors()); $watch('endTime', () => fetchAvailableInstructors()); $watch('days', () => fetchAvailableInstructors())"
+    class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]"
+>
     <div class="space-y-6">
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Group Details') }}</p>
@@ -45,25 +82,25 @@
             <div class="mt-6 grid gap-5 md:grid-cols-2">
                 <div>
                     <label for="start_date" class="text-sm font-semibold text-slate-700">{{ __('Start Date') }}</label>
-                    <input id="start_date" name="start_date" type="date" value="{{ $startDate }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <input id="start_date" name="start_date" type="date" x-model="startDate" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('start_date')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="end_date" class="text-sm font-semibold text-slate-700">{{ __('End Date') }}</label>
-                    <input id="end_date" name="end_date" type="date" value="{{ $endDate }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <input id="end_date" name="end_date" type="date" x-model="endDate" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('end_date')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="start_time" class="text-sm font-semibold text-slate-700">{{ __('Start Time') }}</label>
-                    <input id="start_time" name="start_time" type="time" value="{{ $startTime }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <input id="start_time" name="start_time" type="time" x-model="startTime" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('start_time')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="end_time" class="text-sm font-semibold text-slate-700">{{ __('End Time') }}</label>
-                    <input id="end_time" name="end_time" type="time" value="{{ $endTime }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <input id="end_time" name="end_time" type="time" x-model="endTime" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('end_time')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
@@ -76,7 +113,7 @@
                                     type="checkbox"
                                     name="days_of_week[]"
                                     value="{{ $value }}"
-                                    @checked(in_array((string) $value, $selectedDays, true))
+                                    x-model="days"
                                     class="group-day-checkbox"
                                 >
                                 <span>{{ $label }}</span>
@@ -120,12 +157,15 @@
                 </div>
 
                 <div>
-                    <label for="instructor_id" class="text-sm font-semibold text-slate-700">{{ __('Instructor') }}</label>
-                    <select id="instructor_id" name="instructor_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <label for="instructor_id" class="text-sm font-semibold text-slate-700">
+                        {{ __('Instructor') }}
+                        <span x-show="isLoading" class="ml-2 inline-block h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-900"></span>
+                    </label>
+                    <select id="instructor_id" name="instructor_id" x-model="selectedInstructor" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}" @selected((string) old('instructor_id', $group?->instructor_id) === (string) $user->id)>{{ $user->name }}</option>
-                        @endforeach
+                        <template x-for="instructor in instructors" :key="instructor.id">
+                            <option :value="instructor.id" x-text="instructor.name" :selected="selectedInstructor == instructor.id"></option>
+                        </template>
                     </select>
                     @error('instructor_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>

@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerWalletController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupEnrollmentController;
@@ -47,6 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::post('groups/{group}/customers', [GroupEnrollmentController::class, 'store'])->name('groups.customers.store');
     Route::patch('groups/{group}/customers/{groupEnrollment}', [GroupEnrollmentController::class, 'update'])->name('groups.customers.update');
     Route::delete('groups/{group}/customers/{groupEnrollment}', [GroupEnrollmentController::class, 'destroy'])->name('groups.customers.destroy');
+    Route::get('groups/available-instructors', [GroupController::class, 'availableInstructors'])->name('groups.available-instructors');
     Route::resource('groups', GroupController::class);
     Route::resource('packages', PackageController::class)->except('show');
     Route::resource('discounts', DiscountController::class)->except('show');
@@ -57,6 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::get('employees/{employee}/payrolls/create', [EmployeeController::class, 'createPayroll'])->name('employees.payrolls.create');
     Route::post('employees/{employee}/payrolls', [EmployeeController::class, 'storePayroll'])->name('employees.payrolls.store');
     Route::resource('employees', EmployeeController::class);
+    Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+    Route::delete('attendance/{employeeAbsence}', [AttendanceController::class, 'destroy'])->name('attendance.destroy');
+    Route::get('attendance/monthly', [AttendanceController::class, 'monthly'])->name('attendance.monthly');
     Route::resource('roles', RoleController::class)->except('show');
     Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 

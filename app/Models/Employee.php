@@ -66,4 +66,9 @@ class Employee extends Model
     {
         return $this->morphMany(Payment::class, 'payable');
     }
+
+    public function absences()
+    {
+        return $this->hasMany(EmployeeAbsence::class);
+    }
 }

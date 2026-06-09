@@ -3,15 +3,30 @@
 @section('content')
 @php
     $name = $employee->display_name;
-    $month = old('month', now()->month);
-    $year = old('year', now()->year);
-    $requiredHours = old('required_working_hours', $latestReport?->required_working_hours ?? 0);
-    $actualHours = old('actual_worked_hours', $latestReport?->actual_worked_hours ?? 0);
-    $overtimeHours = old('overtime_hours', $latestReport?->overtime_hours ?? 0);
+    $month = (int) $month;
+    $year = (int) $year;
+    
+    // Use the specific records for this month/year if they exist
+    $report = $currentReport;
+    $payroll = $currentPayroll;
+
+    $requiredHours = old('required_working_hours', $report?->required_working_hours ?? 0);
+    $actualHours = old('actual_worked_hours', $report?->actual_worked_hours ?? 0);
+    $overtimeHours = old('overtime_hours', $report?->overtime_hours ?? 0);
+    
     $hourSalary = $employee->salary_type === 'hourly'
         ? (float) $employee->basic_salary
         : ((float) $requiredHours > 0 ? round((float) $employee->basic_salary / (float) $requiredHours, 2) : 0);
-    $defaultOvertimeAmount = round((float) $overtimeHours * (float) $hourSalary, 2);
+    
+    // Only pre-fill overtime amount from the specific payroll if it exists, otherwise calculate from hours
+    $defaultOvertimeAmount = $payroll ? (float) $payroll->overtime_amount : round((float) $overtimeHours * (float) $hourSalary, 2);
+
+    // Attendance-based defaults
+    $attendanceWorkingDays = $attendanceSummary['working_days'] ?? 0;
+    $attendancePresentDays = $attendanceSummary['present_days'] ?? 0;
+    $attendanceAbsentDays = $attendanceSummary['total_absent_days'] ?? 0;
+    $attendanceAbsences = $attendanceSummary['absences'] ?? collect();
+    $defaultAbsenceDeduction = $absenceDeduction ?? 0;
 @endphp
 
 <div class="bg-slate-100/70 py-10">
@@ -57,15 +72,46 @@
                 </div>
             </div>
 
+            {{-- Attendance Summary Card --}}
+            <div class="rounded-3xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-amber-600">{{ __('Attendance Summary') }}</p>
+                <p class="mt-1 text-xs text-amber-500">{{ __('Auto-calculated from recorded absences for this period.') }}</p>
+
+                <div class="mt-4 grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-2xl bg-white/70 px-4 py-3">
+                        <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Working Days') }}</p>
+                        <p class="mt-2 text-sm font-bold text-slate-900">{{ $attendanceWorkingDays }}</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/70 px-4 py-3">
+                        <p class="text-xs font-medium uppercase tracking-[0.18em] text-emerald-600">{{ __('Present Days') }}</p>
+                        <p class="mt-2 text-sm font-bold text-emerald-700">{{ $attendancePresentDays }}</p>
+                    </div>
+                    <div class="rounded-2xl bg-white/70 px-4 py-3">
+                        <p class="text-xs font-medium uppercase tracking-[0.18em] text-rose-600">{{ __('Absent Days') }}</p>
+                        <p class="mt-2 text-sm font-bold text-rose-700">{{ $attendanceAbsentDays }}</p>
+                    </div>
+                </div>
+
+                @if($attendanceAbsences->isNotEmpty())
+                    <div class="mt-4 flex flex-wrap gap-1.5">
+                        @foreach($attendanceAbsences as $absence)
+                            <span class="inline-flex items-center rounded-lg bg-white/70 px-2 py-1 text-[11px] font-medium text-amber-700 ring-1 ring-inset ring-amber-200" title="{{ $absence->reason }}">
+                                {{ $absence->date->format('M d') }} — {{ $absence->type->label() }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Payroll Period') }}</p>
 
                 <div class="mt-6 grid gap-5 sm:grid-cols-3">
                     <div>
                         <label for="payroll_month" class="text-sm font-semibold text-slate-700">{{ __('Month') }}</label>
-                        <select id="payroll_month" name="month" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <select id="payroll_month" name="month" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10" onchange="this.form.method='GET'; this.form.action='{{ route('employees.payrolls.create', $employee) }}'; this.form.submit();">
                             @for($number = 1; $number <= 12; $number++)
-                                <option value="{{ $number }}" @selected((int) $month === $number)>{{ $number }}</option>
+                                <option value="{{ $number }}" @selected($month === $number)>{{ $number }}</option>
                             @endfor
                         </select>
                         @error('month')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
@@ -73,7 +119,7 @@
 
                     <div>
                         <label for="payroll_year" class="text-sm font-semibold text-slate-700">{{ __('Year') }}</label>
-                        <input id="payroll_year" name="year" type="number" min="2000" max="2100" value="{{ $year }}" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="payroll_year" name="year" type="number" min="2000" max="2100" value="{{ $year }}" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10" onchange="this.form.method='GET'; this.form.action='{{ route('employees.payrolls.create', $employee) }}'; this.form.submit();">
                         @error('year')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
@@ -81,7 +127,7 @@
                         <label for="payroll_status" class="text-sm font-semibold text-slate-700">{{ __('Status') }}</label>
                         <select id="payroll_status" name="status" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                             @foreach(['draft' => __('Draft'), 'paid' => __('Paid')] as $value => $label)
-                                <option value="{{ $value }}" @selected(old('status', $latestPayroll?->status ?? 'draft') === $value)>{{ $label }}</option>
+                                <option value="{{ $value }}" @selected(old('status', $payroll?->status ?? 'draft') === $value)>{{ $label }}</option>
                             @endforeach
                         </select>
                         @error('status')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
@@ -95,7 +141,7 @@
                 <div class="mt-6 grid gap-5 sm:grid-cols-2">
                     <div>
                         <label for="required_working_days" class="text-sm font-semibold text-slate-700">{{ __('Required Working Days') }}</label>
-                        <input id="required_working_days" name="required_working_days" type="number" min="0" step="0.01" value="{{ old('required_working_days', $latestReport?->required_working_days ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="required_working_days" name="required_working_days" type="number" min="0" step="0.01" value="{{ old('required_working_days', $attendanceWorkingDays) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('required_working_days')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
@@ -107,7 +153,7 @@
 
                     <div>
                         <label for="actual_worked_days" class="text-sm font-semibold text-slate-700">{{ __('Actual Worked Days') }}</label>
-                        <input id="actual_worked_days" name="actual_worked_days" type="number" min="0" step="0.01" value="{{ old('actual_worked_days', $latestReport?->actual_worked_days ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="actual_worked_days" name="actual_worked_days" type="number" min="0" step="0.01" value="{{ old('actual_worked_days', $attendancePresentDays) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('actual_worked_days')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
@@ -125,7 +171,7 @@
 
                     <div>
                         <label for="overtime_amount" class="text-sm font-semibold text-slate-700">{{ __('Overtime Amount') }}</label>
-                        <input id="overtime_amount" name="overtime_amount" type="number" min="0" step="0.01" value="{{ old('overtime_amount', $latestPayroll?->overtime_amount ?? $defaultOvertimeAmount) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="overtime_amount" name="overtime_amount" type="number" min="0" step="0.01" value="{{ old('overtime_amount', $defaultOvertimeAmount) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('overtime_amount')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -137,19 +183,19 @@
                 <div class="mt-6 grid gap-5 sm:grid-cols-3">
                     <div>
                         <label for="absence_deduction" class="text-sm font-semibold text-slate-700">{{ __('Absence Deduction') }}</label>
-                        <input id="absence_deduction" name="absence_deduction" type="number" min="0" step="0.01" value="{{ old('absence_deduction', $latestPayroll?->absence_deduction ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="absence_deduction" name="absence_deduction" type="number" min="0" step="0.01" value="{{ old('absence_deduction', $defaultAbsenceDeduction) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('absence_deduction')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="total_bonus" class="text-sm font-semibold text-slate-700">{{ __('Bonus') }}</label>
-                        <input id="total_bonus" name="total_bonus" type="number" min="0" step="0.01" value="{{ old('total_bonus', $latestPayroll?->total_bonus ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="total_bonus" name="total_bonus" type="number" min="0" step="0.01" value="{{ old('total_bonus', $payroll?->total_bonus ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('total_bonus')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="total_deductions" class="text-sm font-semibold text-slate-700">{{ __('Deduction') }}</label>
-                        <input id="total_deductions" name="total_deductions" type="number" min="0" step="0.01" value="{{ old('total_deductions', $latestPayroll?->total_deductions ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <input id="total_deductions" name="total_deductions" type="number" min="0" step="0.01" value="{{ old('total_deductions', $payroll?->total_deductions ?? 0) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         @error('total_deductions')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -157,7 +203,7 @@
 
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Notes') }}</p>
-                <textarea id="payroll_notes" name="notes" rows="3" class="mt-6 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">{{ old('notes', $latestReport?->notes) }}</textarea>
+                <textarea id="payroll_notes" name="notes" rows="3" class="mt-6 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">{{ old('notes', $report?->notes) }}</textarea>
                 @error('notes')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
             </div>
 

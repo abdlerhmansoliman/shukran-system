@@ -6,6 +6,8 @@ use App\Enums\GroupStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+use App\Rules\InstructorAvailable;
+
 class GroupStoreRequest extends FormRequest
 {
     protected function prepareForValidation(): void
@@ -33,7 +35,11 @@ class GroupStoreRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'level_id' => ['nullable', 'exists:levels,id'],
             'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
-            'instructor_id' => ['nullable', 'exists:users,id'],
+            'instructor_id' => [
+                'nullable', 
+                'exists:users,id',
+                new InstructorAvailable($this->all())
+            ],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:999'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

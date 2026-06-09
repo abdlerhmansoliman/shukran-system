@@ -33,7 +33,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'discounts',
         ];
 
-        $permissions = ['view reports']; // Keep custom non-resource permissions here
+        $permissions = ['view reports', 'manage attendance']; // Keep custom non-resource permissions here
 
         foreach ($resources as $resource) {
             $permissions[] = "view $resource";

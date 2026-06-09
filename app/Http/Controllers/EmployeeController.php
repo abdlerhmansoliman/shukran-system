@@ -70,7 +70,10 @@ class EmployeeController extends Controller
             'payments.payroll',
         ]);
 
-        return view('employees.show', compact('employee'));
+        $attendanceService = app(\App\Services\AttendanceService::class);
+        $attendanceSummary = $attendanceService->getMonthSummary($employee, now()->month, now()->year);
+
+        return view('employees.show', compact('employee', 'attendanceSummary'));
     }
 
     public function createSalaryPayment(Employee $employee)
@@ -101,17 +104,29 @@ class EmployeeController extends Controller
     public function createPayroll(Employee $employee)
     {
         Gate::authorize('edit employees');
+        
+        $month = (int) request('month', now()->month);
+        $year = (int) request('year', now()->year);
+
         $employee->load([
             'user',
             'department',
-            'monthlyReports' => fn ($query) => $query->latest('year')->latest('month'),
-            'payrolls' => fn ($query) => $query->latest('year')->latest('month'),
+            'monthlyReports' => fn ($query) => $query->where('month', $month)->where('year', $year),
+            'payrolls' => fn ($query) => $query->where('month', $month)->where('year', $year),
         ]);
+
+        $attendanceService = app(\App\Services\AttendanceService::class);
+        $attendanceSummary = $attendanceService->getMonthSummary($employee, $month, $year);
+        $absenceDeduction = $attendanceService->calculateAbsenceDeduction($employee, $month, $year);
 
         return view('employees.payrolls.create', [
             'employee' => $employee,
-            'latestReport' => $employee->monthlyReports->first(),
-            'latestPayroll' => $employee->payrolls->first(),
+            'currentReport' => $employee->monthlyReports->first(),
+            'currentPayroll' => $employee->payrolls->first(),
+            'attendanceSummary' => $attendanceSummary,
+            'absenceDeduction' => $absenceDeduction,
+            'month' => $month,
+            'year' => $year,
         ]);
     }
 
