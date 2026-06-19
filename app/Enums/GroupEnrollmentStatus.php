@@ -11,6 +11,7 @@ enum GroupEnrollmentStatus: string
     case Cancelled = 'cancelled';
     case Dropped = 'dropped';
     case Transferred = 'transferred';
+    case Rejected = 'rejected';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum GroupEnrollmentStatus: string
             self::Cancelled => __('Cancelled'),
             self::Dropped => __('Dropped'),
             self::Transferred => __('Transferred'),
+            self::Rejected => __('Rejected'),
         };
     }
 

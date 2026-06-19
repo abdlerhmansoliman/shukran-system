@@ -161,7 +161,16 @@
                                                             data-customer-checkbox
                                                         >
                                                     </td>
-                                                    <td class="px-4 py-3 text-sm font-semibold text-slate-900">{{ $name ?: __('Unnamed customer') }}</td>
+                                                    <td class="px-4 py-3 text-sm font-semibold text-slate-900">
+                                                        <div class="flex items-center gap-2">
+                                                            {{ $name ?: __('Unnamed customer') }}
+                                                            @if($customer->has_rejected)
+                                                                <span class="inline-flex items-center rounded-md bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10" title="{{ __('Previously rejected a group offer') }}">
+                                                                    {{ __('Previously Rejected') }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </td>
                                                     <td class="px-4 py-3 text-sm font-medium text-slate-600">{{ $customer->phone ?: __('Not specified') }}</td>
                                                 </tr>
                                             @empty
@@ -243,6 +252,15 @@
                                                         <input type="hidden" name="status" value="ready">
                                                         <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
                                                             {{ __('Confirm Customer') }}
+                                                        </button>
+                                                    </form>
+
+                                                    <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <input type="hidden" name="status" value="rejected">
+                                                        <button type="submit" class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50">
+                                                            {{ __('Reject Offer') }}
                                                         </button>
                                                     </form>
                                                 @endif

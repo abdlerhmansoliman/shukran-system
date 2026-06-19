@@ -569,5 +569,15 @@
     "Perfect attendance this month!": "حضور كامل هذا الشهر!",
     "Attendance Summary": "ملخص الحضور",
     "Auto-calculated from recorded absences for this period.": "محسوب تلقائياً من الغياب المسجل لهذه الفترة.",
-    "N/A": "غ/م"
+    "N/A": "غ/م",
+    "Previously Rejected": "تم الرفض سابقاً",
+    "Reject Offer": "رفض العرض",
+    "Approve": "موافقة",
+    "Reject": "رفض",
+    "No offers found": "لا توجد عروض",
+    "Offers": "العروض",
+    "Class products and enrollments": "الصفوف والمنتجات",
+    "Customization": "التخصيص",
+    "System settings": "إعدادات النظام",
+    "Add Product"اضافة منتج"
 }

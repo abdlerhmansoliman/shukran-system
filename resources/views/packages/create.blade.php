@@ -6,7 +6,7 @@
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package Catalog') }}</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Add Package') }}</h1>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Add Product') }}</h1>
                 <p class="mt-2 text-sm text-slate-500">{{ __('Create a reusable package template for customer assignments.') }}</p>
             </div>
 

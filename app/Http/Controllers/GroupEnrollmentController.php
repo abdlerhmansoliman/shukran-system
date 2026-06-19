@@ -71,13 +71,17 @@ class GroupEnrollmentController extends Controller
                     GroupEnrollmentStatus::Pending->value,
                     GroupEnrollmentStatus::Ready->value,
                     GroupEnrollmentStatus::Cancelled->value,
+                    GroupEnrollmentStatus::Rejected->value,
                 ]),
             ],
         ]);
 
         $groupEnrollment->update([
             'status' => $validated['status'],
-            'left_at' => $validated['status'] === GroupEnrollmentStatus::Cancelled->value ? now()->toDateString() : null,
+            'left_at' => in_array($validated['status'], [
+                GroupEnrollmentStatus::Cancelled->value,
+                GroupEnrollmentStatus::Rejected->value,
+            ], true) ? now()->toDateString() : null,
         ]);
 
         return redirect()

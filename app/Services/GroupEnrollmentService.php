@@ -25,6 +25,9 @@ class GroupEnrollmentService
                     ->where('status', 'active')
                     ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()));
             })
+            ->withExists(['groupEnrollments as has_rejected' => function ($query) {
+                $query->where('status', GroupEnrollmentStatus::Rejected->value);
+            }])
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get();

@@ -30,7 +30,7 @@
             x-cloak
             type="button"
             @click="closeSidebar()"
-            class="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
+            class="ms-auto inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-500 transition hover:bg-slate-50"
             aria-label="{{ __('Close sidebar') }}"
         >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +60,7 @@
 
                     @if($hasSubitems)
                         <div x-data="{ open: {{ $isActive ? 'true' : 'false' }} }" class="space-y-1">
-                            <button @click="open = !open" type="button" class="w-full text-left sidebar-link {{ $isActive ? 'sidebar-link-active' : '' }}">
+                            <button @click="open = !open" type="button" class="w-full text-start sidebar-link {{ $isActive ? 'sidebar-link-active' : '' }}">
                                 <span class="sidebar-link-icon">
                                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         @foreach($item['icon']['paths'] ?? [] as $path)
@@ -77,11 +77,11 @@
                                         <span class="mt-0.5 block truncate text-xs font-normal text-slate-400">{{ __($item['subtitle']) }}</span>
                                     @endif
                                 </span>
-                                <svg class="ml-auto h-4 w-4 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="ms-auto h-4 w-4 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
-                            <div x-show="open" class="space-y-1 pl-11 mt-1">
+                            <div x-show="open" class="space-y-1 ps-11 mt-1">
                                 @foreach($item['items'] as $subitem)
                                     @php
                                         if (isset($subitem['permission']) && !auth()->user()->can($subitem['permission'])) {

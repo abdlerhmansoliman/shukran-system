@@ -78,13 +78,91 @@
             </div>
         </form>
 
-        <div class="mb-4 flex justify-end">
-            <label for="customer-status-filter" class="sr-only">{{ __('Customer Status') }}</label>
-            <select id="customer-status-filter" class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 sm:w-48">
-                <option value="">{{ __('All statuses') }}</option>
-                <option value="active">{{ __('Active') }}</option>
-                <option value="inactive">{{ __('Inactive') }}</option>
-            </select>
+        <div class="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-wrap items-end gap-4">
+                {{-- Date From --}}
+                <div class="w-full sm:w-auto">
+                    <label for="filter_from_date" class="text-sm font-semibold text-slate-700">{{ __('From Date') }}</label>
+                    <input
+                        type="date"
+                        id="filter_from_date"
+                        class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"
+                    >
+                </div>
+
+                {{-- Date To --}}
+                <div class="w-full sm:w-auto">
+                    <label for="filter_to_date" class="text-sm font-semibold text-slate-700">{{ __('To Date') }}</label>
+                    <input
+                        type="date"
+                        id="filter_to_date"
+                        class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"
+                    >
+                </div>
+
+                {{-- Status --}}
+                <div class="w-full sm:w-auto">
+                    <label for="filter_status" class="text-sm font-semibold text-slate-700">{{ __('Status') }}</label>
+                    <select
+                        id="filter_status"
+                        class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"
+                    >
+                        <option value="">{{ __('All statuses') }}</option>
+                        <option value="active">{{ __('Active') }}</option>
+                        <option value="inactive">{{ __('Inactive') }}</option>
+                    </select>
+                </div>
+
+                {{-- Level --}}
+                <div class="w-full sm:w-auto">
+                    <label for="filter_level" class="text-sm font-semibold text-slate-700">{{ __('Level') }}</label>
+                    <select
+                        id="filter_level"
+                        class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"
+                    >
+                        <option value="">{{ __('All levels') }}</option>
+                        @foreach($levels ?? [] as $level)
+                            <option value="{{ $level->id }}">{{ $level->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Category --}}
+                <div class="w-full sm:w-auto">
+                    <label for="filter_category" class="text-sm font-semibold text-slate-700">{{ __('Category') }}</label>
+                    <select
+                        id="filter_category"
+                        class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"
+                    >
+                        <option value="">{{ __('All categories') }}</option>
+                        @foreach($categories ?? [] as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @foreach($category->children as $child)
+                                <option value="{{ $child->id }}">-- {{ $child->name }}</option>
+                            @endforeach
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex w-full items-center gap-4 sm:w-auto">
+                    <button
+                        type="button"
+                        id="apply-filters"
+                        class="inline-flex flex-1 items-center justify-center rounded-xl bg-slate-900 px-5 py-[0.6rem] text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 sm:flex-none"
+                    >
+                        {{ __('Filter') }}
+                    </button>
+
+                    <button
+                        type="button"
+                        id="reset-filters"
+                        class="text-sm font-medium text-slate-500 transition hover:text-slate-700"
+                    >
+                        {{ __('Reset') }}
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -103,7 +181,15 @@
             const hiddenInputs = document.getElementById('bulk-customer-inputs');
             const selectedCount = document.getElementById('selected-customers-count');
             const submitButton = document.getElementById('bulk-group-submit');
-            const statusFilter = document.getElementById('customer-status-filter');
+
+            // Filter Elements
+            const filterFromDate = document.getElementById('filter_from_date');
+            const filterToDate = document.getElementById('filter_to_date');
+            const filterStatus = document.getElementById('filter_status');
+            const filterLevel = document.getElementById('filter_level');
+            const filterCategory = document.getElementById('filter_category');
+            const applyBtn = document.getElementById('apply-filters');
+            const resetBtn = document.getElementById('reset-filters');
 
             const syncControls = () => {
                 if (selectedCount) {
@@ -169,15 +255,38 @@
                 });
             });
 
-            window.jQuery?.(() => {
-                const table = window.jQuery('#customer-table').DataTable();
+            const initTableEvents = () => {
+                if (window.jQuery && window.LaravelDataTables && window.LaravelDataTables['customer-table']) {
+                    const $table = window.jQuery('#customer-table');
+                    
+                    $table.on('preXhr.dt', function (e, settings, data) {
+                        data.filter_status = filterStatus?.value || '';
+                        data.from_date = filterFromDate?.value || '';
+                        data.to_date = filterToDate?.value || '';
+                        data.level_id = filterLevel?.value || '';
+                        data.category_id = filterCategory?.value || '';
+                    });
 
-                statusFilter?.addEventListener('change', () => {
-                    table.column(4).search(statusFilter.value).draw();
-                });
+                    applyBtn?.addEventListener('click', () => {
+                        window.LaravelDataTables['customer-table'].ajax.reload();
+                    });
 
-                window.jQuery('#customer-table').on('draw.dt', syncControls);
-            });
+                    resetBtn?.addEventListener('click', () => {
+                        if (filterFromDate) filterFromDate.value = '';
+                        if (filterToDate) filterToDate.value = '';
+                        if (filterStatus) filterStatus.value = '';
+                        if (filterLevel) filterLevel.value = '';
+                        if (filterCategory) filterCategory.value = '';
+                        window.LaravelDataTables['customer-table'].ajax.reload();
+                    });
+
+                    $table.on('draw.dt', syncControls);
+                } else {
+                    setTimeout(initTableEvents, 100);
+                }
+            };
+
+            initTableEvents();
 
             syncControls();
         })();

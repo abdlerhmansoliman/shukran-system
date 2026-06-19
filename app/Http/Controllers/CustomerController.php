@@ -32,6 +32,8 @@ class CustomerController extends Controller
                 ->whereIn('status', [GroupStatus::Planned->value, GroupStatus::Active->value])
                 ->orderBy('name')
                 ->get(),
+            'levels' => Level::query()->orderBy('name')->get(),
+            'categories' => Category::query()->children()->with('parent')->orderBy('name')->get(),
         ]);
     }
 

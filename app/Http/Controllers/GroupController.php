@@ -180,6 +180,7 @@ class GroupController extends Controller
             ->whereNotIn('status', [
                 GroupEnrollmentStatus::Ready->value,
                 GroupEnrollmentStatus::Cancelled->value,
+                GroupEnrollmentStatus::Rejected->value,
             ])
             ->count();
 

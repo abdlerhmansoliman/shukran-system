@@ -78,6 +78,14 @@ class CustomerDataTable extends DataTable
 
                 return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">'.e(__(Str::headline($customer->source))).'</span>';
             })
+            ->addColumn('level', function (Customer $customer) {
+                return $customer->level ? '<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">'.e($customer->level->name).'</span>' : '<span class="text-slate-400 text-sm">-</span>';
+            })
+            ->addColumn('category', function (Customer $customer) {
+                if (!$customer->category) return '<span class="text-slate-400 text-sm">-</span>';
+                $name = $customer->category->parent ? $customer->category->parent->name . ' - ' . $customer->category->name : $customer->category->name;
+                return '<span class="text-sm font-medium text-slate-700">'.e($name).'</span>';
+            })
             ->addColumn('action', function (Customer $customer) {
                 return view('components.datatable-actions', compact('customer'))->render();
             })
@@ -103,7 +111,7 @@ class CustomerDataTable extends DataTable
                     $query->whereDoesntHave('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
                 }
             })
-            ->rawColumns(['select', 'customer', 'phone', 'status', 'source', 'action'])
+            ->rawColumns(['select', 'customer', 'phone', 'status', 'source', 'level', 'category', 'action'])
             ->setRowId('id');
     }
 
@@ -114,11 +122,38 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->newQuery()
+        $query = $model->newQuery()
             ->select('customers.*')
+            ->with(['level', 'category.parent'])
             ->withCount([
-                'customerPackages as active_subscriptions_count' => fn (QueryBuilder $query) => $query->where('status', 'active'),
+                'customerPackages as active_subscriptions_count' => fn (QueryBuilder $q) => $q->where('status', 'active'),
             ]);
+
+        if ($status = request('filter_status')) {
+            if ($status === 'active') {
+                $query->whereHas('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
+            } elseif ($status === 'inactive') {
+                $query->whereDoesntHave('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
+            }
+        }
+
+        if ($fromDate = request('from_date')) {
+            $query->whereDate('created_at', '>=', $fromDate);
+        }
+
+        if ($toDate = request('to_date')) {
+            $query->whereDate('created_at', '<=', $toDate);
+        }
+
+        if ($levelId = request('level_id')) {
+            $query->where('level_id', $levelId);
+        }
+
+        if ($categoryId = request('category_id')) {
+            $query->where('category_id', $categoryId);
+        }
+
+        return $query;
     }
 
     /**
@@ -200,6 +235,8 @@ class CustomerDataTable extends DataTable
                 ->addClass('min-w-[340px]'),
             Column::make('phone')->title(__('Phone'))->addClass('whitespace-nowrap min-w-[180px]'),
             Column::computed('status')->title(__('Status'))->searchable(true)->orderable(false),
+            Column::computed('level')->title(__('Level'))->searchable(true)->orderable(false),
+            Column::computed('category')->title(__('Category'))->searchable(true)->orderable(false),
             Column::make('source')->title(__('Source')),
             Column::make('created_at')->title(__('Created'))->addClass('whitespace-nowrap min-w-[160px]')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
 
