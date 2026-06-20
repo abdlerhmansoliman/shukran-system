@@ -51,11 +51,29 @@
                     @error('email')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div class="md:col-span-2">
-                    <label for="address" class="text-sm font-semibold text-slate-700">{{ __('Address') }}</label>
-                    <input id="address" name="address" type="text" value="{{ old('address', $customer?->address) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                    @error('address')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                <div>
+                    <label for="gender" class="text-sm font-semibold text-slate-700">{{ __('Gender') }}</label>
+                    <select id="gender" name="gender" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        <option value="male" @selected(old('gender', $customer?->gender) === 'male')>{{ __('Male') }}</option>
+                        <option value="female" @selected(old('gender', $customer?->gender) === 'female')>{{ __('Female') }}</option>
+                    </select>
+                    @error('gender')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
+
+                <div>
+                    <label for="country_id" class="text-sm font-semibold text-slate-700">{{ __('Country') }}</label>
+                    <select id="country_id" name="country_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country->id }}" @selected((string) old('country_id', $customer?->country_id) === (string) $country->id)>
+                                {{ $country->name }}@if($country->code) ({{ $country->code }})@endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('country_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
             </div>
         </div>
 
@@ -89,27 +107,31 @@
                     @error('placement_month')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
+                @if($customer)
                 <div>
-                    <label for="age" class="text-sm font-semibold text-slate-700">{{ __('Age') }}</label>
-                    <input id="age" name="age" type="number" min="0" max="120" value="{{ old('age', $customer?->age) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                    @error('age')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                    <label class="text-sm font-semibold text-slate-700">{{ __('Wallet Balance') }}</label>
+                    <div class="mt-2 flex items-center gap-3">
+                        <div class="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-900">
+                            {{ number_format((float) $customer->wallet_balance, 2) }}
+                        </div>
+                        <button
+                            type="button"
+                            x-on:click="$dispatch('open-modal', 'wallet-top-up')"
+                            class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                        >
+                            {{ __('Top Up') }}
+                        </button>
+                    </div>
+                    <input type="hidden" name="wallet_balance" value="{{ $customer->wallet_balance }}">
                 </div>
-
+                @else
                 <div>
                     <label for="wallet_balance" class="text-sm font-semibold text-slate-700">{{ __('Wallet Balance') }}</label>
-                    <input id="wallet_balance" name="wallet_balance" type="number" min="0" step="0.01" value="{{ old('wallet_balance', $customer?->wallet_balance ?? '0.00') }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <input id="wallet_balance" name="wallet_balance" type="number" min="0" step="0.01" value="{{ old('wallet_balance', '0.00') }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                     @error('wallet_balance')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
+                @endif
 
-                <div>
-                    <label for="gender" class="text-sm font-semibold text-slate-700">{{ __('Gender') }}</label>
-                    <select id="gender" name="gender" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        <option value="male" @selected(old('gender', $customer?->gender) === 'male')>{{ __('Male') }}</option>
-                        <option value="female" @selected(old('gender', $customer?->gender) === 'female')>{{ __('Female') }}</option>
-                    </select>
-                    @error('gender')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
             </div>
         </div>
     </div>
@@ -143,18 +165,6 @@
                     @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label for="country_id" class="text-sm font-semibold text-slate-700">{{ __('Country') }}</label>
-                    <select id="country_id" name="country_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($countries as $country)
-                            <option value="{{ $country->id }}" @selected((string) old('country_id', $customer?->country_id) === (string) $country->id)>
-                                {{ $country->name }}@if($country->code) ({{ $country->code }})@endif
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('country_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
             </div>
         </div>
 
@@ -301,15 +311,41 @@
                     @error('tester_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
+
                 <div>
-                    <label for="old_instructor_id" class="text-sm font-semibold text-slate-700">{{ __('Instructor') }}</label>
-                    <select id="old_instructor_id" name="old_instructor_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($users as $user)
-                            <option value="{{ $user->id }}" @selected((string) old('old_instructor_id', $customer?->old_instructor_id) === (string) $user->id)>{{ $user->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('old_instructor_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                    <label for="test_date" class="text-sm font-semibold text-slate-700">{{ __('Test Date') }}</label>
+                    <input id="test_date" name="test_date" type="date" value="{{ old('test_date', $customer?->test_date?->format('Y-m-d')) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('test_date')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="progress_report_link" class="text-sm font-semibold text-slate-700">{{ __('Progress Report Link') }}</label>
+                    <input id="progress_report_link" name="progress_report_link" type="text" value="{{ old('progress_report_link', $customer?->progress_report_link) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10" placeholder="https://...">
+                    @error('progress_report_link')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="address" class="text-sm font-semibold text-slate-700">{{ __('Address') }}</label>
+                    <input id="address" name="address" type="text" value="{{ old('address', $customer?->address) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('address')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="age" class="text-sm font-semibold text-slate-700">{{ __('Age') }}</label>
+                    <input id="age" name="age" type="number" min="0" max="120" value="{{ old('age', $customer?->age) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('age')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="job" class="text-sm font-semibold text-slate-700">{{ __('Job') }}</label>
+                    <input id="job" name="job" type="text" value="{{ old('job', $customer?->job) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('job')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="college" class="text-sm font-semibold text-slate-700">{{ __('College') }}</label>
+                    <input id="college" name="college" type="text" value="{{ old('college', $customer?->college) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('college')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
             </div>
         </div>
@@ -401,6 +437,89 @@
                 </x-modal>
             @endif
         @endforeach
+    @endpush
+@endif
+
+@if($customer)
+    @push('scripts')
+        <x-modal name="wallet-top-up" :show="false" maxWidth="4xl" focusable>
+            <form method="POST" action="{{ route('customers.wallet.top-ups.store', $customer) }}" class="p-10 sm:p-12">
+                @csrf
+                
+                <div class="mx-auto max-w-2xl">
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-slate-900">{{ __('Top Up Wallet') }}</h2>
+                        <p class="mt-1 text-sm text-slate-500">{{ __('Add funds to this customer wallet.') }}</p>
+                    </div>
+
+                    <div class="mb-5 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                        <p class="text-sm font-medium text-slate-500">{{ __('Current Balance') }}</p>
+                        <p class="text-xl font-bold text-slate-900">{{ number_format((float) $customer->wallet_balance, 2) }}</p>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div>
+                            <label for="wallet_modal_amount" class="text-sm font-semibold text-slate-700">{{ __('Amount') }}</label>
+                            <input id="wallet_modal_amount" name="amount" type="number" min="0.01" step="0.01" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div>
+                                <label for="wallet_modal_paid_at" class="text-sm font-semibold text-slate-700">{{ __('Payment Date') }}</label>
+                                <input id="wallet_modal_paid_at" name="paid_at" type="date" value="{{ now()->toDateString() }}" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                            </div>
+
+                            <div>
+                                <label for="wallet_modal_status" class="text-sm font-semibold text-slate-700">{{ __('Status') }}</label>
+                                <select id="wallet_modal_status" name="status" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                    @foreach(['completed' => __('Completed'), 'pending' => __('Pending'), 'cancelled' => __('Cancelled')] as $value => $label)
+                                        <option value="{{ $value }}" @selected($value === 'completed')>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <div>
+                                <label for="wallet_modal_method" class="text-sm font-semibold text-slate-700">{{ __('Payment Method') }}</label>
+                                <select id="wallet_modal_method" name="payment_method_id" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                    <option value="">{{ __('Choose payment method') }}</option>
+                                    @foreach($paymentMethods as $paymentMethod)
+                                        <option value="{{ $paymentMethod->id }}">{{ $paymentMethod->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="wallet_modal_reference" class="text-sm font-semibold text-slate-700">{{ __('Reference') }}</label>
+                                <input id="wallet_modal_reference" name="reference" type="text" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="wallet_modal_notes" class="text-sm font-semibold text-slate-700">{{ __('Notes') }}</label>
+                            <textarea id="wallet_modal_notes" name="notes" rows="2" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                        <button
+                            type="button"
+                            x-on:click="$dispatch('close-modal', 'wallet-top-up')"
+                            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        >
+                            {{ __('Cancel') }}
+                        </button>
+                        <button
+                            type="submit"
+                            class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+                        >
+                            {{ __('Top Up Wallet') }}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </x-modal>
     @endpush
 @endif
 

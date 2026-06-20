@@ -70,7 +70,6 @@ class CustomerStoreRequest extends FormRequest
             'customer_type' => ['required', Rule::in(['new', 'old'])],
             'placement_month' => ['nullable', 'date'],
             'tester_id' => ['nullable', 'exists:users,id'],
-            'old_instructor_id' => ['nullable', 'exists:users,id'],
             'package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
             'package_assignments' => ['nullable', 'array'],
             'package_assignments.*.package_id' => ['required', Rule::exists('packages', 'id')->where('status', 'active')],
@@ -83,6 +82,10 @@ class CustomerStoreRequest extends FormRequest
             'country_id' => ['nullable', 'exists:countries,id'],
             'level_id' => ['nullable', 'exists:levels,id'],
             'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
+            'job' => ['nullable', 'string', 'max:255'],
+            'college' => ['nullable', 'string', 'max:255'],
+            'progress_report_link' => ['nullable', 'string', 'max:2000'],
+            'test_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
     }

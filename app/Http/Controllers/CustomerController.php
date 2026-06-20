@@ -101,7 +101,7 @@ class CustomerController extends Controller
             'country',
             'creator',
             'tester',
-            'oldInstructor',
+
             'customerPackages.package',
             'customerPackages.discountTemplate',
             'customerPackages.creator',
@@ -156,6 +156,10 @@ class CustomerController extends Controller
                 ->orderBy('name')
                 ->get(),
             'users' => User::query()
+                ->orderBy('name')
+                ->get(),
+            'paymentMethods' => \App\Models\PaymentMethod::query()
+                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
         ];

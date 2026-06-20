@@ -51,7 +51,7 @@ class CustomerWalletController extends Controller
         });
 
         return redirect()
-            ->route('customers.show', $customer)
+            ->route('customers.wallet.show', $customer)
             ->with('success', __('Wallet balance updated successfully.'));
     }
 }

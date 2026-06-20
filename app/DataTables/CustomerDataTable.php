@@ -2,6 +2,7 @@
 
 namespace App\DataTables;
 
+use App\Enums\CustomerStatus;
 use App\Models\Customer;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
 use Illuminate\Support\Str;
@@ -65,11 +66,11 @@ class CustomerDataTable extends DataTable
                 return '<span class="font-medium text-slate-700">'.e($customer->phone).'</span>'.$secondPhone;
             })
             ->addColumn('status', function (Customer $customer) {
-                $classes = $customer->status === 'active'
-                    ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-                    : 'bg-slate-100 text-slate-600 ring-slate-500/20';
+                $status = $customer->status;
+                $classes = $status instanceof CustomerStatus ? $status->color() : 'bg-slate-100 text-slate-600 ring-slate-500/20';
+                $label = $status instanceof CustomerStatus ? $status->label() : __(Str::headline((string) $status));
 
-                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset '.$classes.'">'.e(__(Str::headline($customer->status))).'</span>';
+                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset '.$classes.'">'.e($label).'</span>';
             })
             ->editColumn('source', function (Customer $customer) {
                 if (! $customer->source) {
@@ -82,8 +83,11 @@ class CustomerDataTable extends DataTable
                 return $customer->level ? '<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">'.e($customer->level->name).'</span>' : '<span class="text-slate-400 text-sm">-</span>';
             })
             ->addColumn('category', function (Customer $customer) {
-                if (!$customer->category) return '<span class="text-slate-400 text-sm">-</span>';
-                $name = $customer->category->parent ? $customer->category->parent->name . ' - ' . $customer->category->name : $customer->category->name;
+                if (! $customer->category) {
+                    return '<span class="text-slate-400 text-sm">-</span>';
+                }
+                $name = $customer->category->parent ? $customer->category->parent->name.' - '.$customer->category->name : $customer->category->name;
+
                 return '<span class="text-sm font-medium text-slate-700">'.e($name).'</span>';
             })
             ->addColumn('action', function (Customer $customer) {
@@ -101,15 +105,7 @@ class CustomerDataTable extends DataTable
                 });
             })
             ->filterColumn('status', function (QueryBuilder $query, string $keyword) {
-                $status = Str::lower($keyword);
-
-                if ($status === 'active') {
-                    $query->whereHas('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
-                }
-
-                if ($status === 'inactive') {
-                    $query->whereDoesntHave('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
-                }
+                $query->where('customers.status', Str::lower($keyword));
             })
             ->rawColumns(['select', 'customer', 'phone', 'status', 'source', 'level', 'category', 'action'])
             ->setRowId('id');
@@ -124,17 +120,10 @@ class CustomerDataTable extends DataTable
     {
         $query = $model->newQuery()
             ->select('customers.*')
-            ->with(['level', 'category.parent'])
-            ->withCount([
-                'customerPackages as active_subscriptions_count' => fn (QueryBuilder $q) => $q->where('status', 'active'),
-            ]);
+            ->with(['level', 'category.parent']);
 
         if ($status = request('filter_status')) {
-            if ($status === 'active') {
-                $query->whereHas('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
-            } elseif ($status === 'inactive') {
-                $query->whereDoesntHave('customerPackages', fn (QueryBuilder $builder) => $builder->where('status', 'active'));
-            }
+            $query->where('customers.status', $status);
         }
 
         if ($fromDate = request('from_date')) {

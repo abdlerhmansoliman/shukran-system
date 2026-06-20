@@ -15,6 +15,7 @@ use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('customers/{customer}/subscriptions/{customerPackage}', [CustomerPackageController::class, 'destroy'])->name('customers.subscriptions.destroy');
     Route::get('customers/{customer}/payments/create', [CustomerPaymentController::class, 'create'])->name('customers.payments.create');
     Route::post('customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customers.payments.store');
+    Route::get('customers/{customer}/wallet', [WalletController::class, 'show'])->name('customers.wallet.show');
     Route::get('customers/{customer}/wallet/top-up', [CustomerWalletController::class, 'create'])->name('customers.wallet.top-ups.create');
     Route::post('customers/{customer}/wallet/top-up', [CustomerWalletController::class, 'store'])->name('customers.wallet.top-ups.store');
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');

@@ -37,10 +37,10 @@
                     {{ __('Record Payment') }}
                 </a>
                 <a
-                    href="{{ route('customers.wallet.top-ups.create', $customer) }}"
-                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                    href="{{ route('customers.wallet.show', $customer) }}"
+                    class="inline-flex items-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
                 >
-                    {{ __('Top Up Wallet') }}
+                    {{ __('Wallet') }}
                 </a>
                 <a
                     href="{{ route('customers.edit', $customer) }}"
@@ -83,8 +83,8 @@
                                 <p class="mt-1 text-sm text-slate-500">{{ $customer->email ?: __('No email provided') }}</p>
 
                                 <div class="mt-3 flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customer->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-slate-100 text-slate-600 ring-slate-500/20' }}">
-                                        {{ __(\Illuminate\Support\Str::headline($customer->status)) }}
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset {{ $customer->status instanceof \App\Enums\CustomerStatus ? $customer->status->color() : 'bg-slate-100 text-slate-600 ring-slate-500/20' }}">
+                                        {{ $customer->status instanceof \App\Enums\CustomerStatus ? $customer->status->label() : __(\Illuminate\Support\Str::headline((string) $customer->status)) }}
                                     </span>
 
                                     @if($customer->source)
@@ -152,10 +152,6 @@
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->email ?: __('No email provided') }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Address') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->address ?: __('Not specified') }}</p>
-                            </div>
-                            <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Country') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">
                                     {{ $customer->country?->name ?: __('Not specified') }}
@@ -172,7 +168,7 @@
                         <div class="mt-5 space-y-4">
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Status') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ __(\Illuminate\Support\Str::headline($customer->status)) }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->status instanceof \App\Enums\CustomerStatus ? $customer->status->label() : __(\Illuminate\Support\Str::headline((string) $customer->status)) }}</p>
                             </div>
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Source') }}</p>
@@ -186,15 +182,9 @@
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Wallet Balance') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ number_format((float) $customer->wallet_balance, 2) }}</p>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Age') }}</p>
-                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->age ?: __('Not specified') }}</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Gender') }}</p>
-                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->gender ? __(\Illuminate\Support\Str::headline($customer->gender)) : __('Not specified') }}</p>
-                                </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Gender') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->gender ? __(\Illuminate\Support\Str::headline($customer->gender)) : __('Not specified') }}</p>
                             </div>
                         </div>
                     </div>
@@ -231,8 +221,39 @@
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->tester?->name ?: __('Not specified') }}</p>
                             </div>
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Instructor') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->oldInstructor?->name ?: __('Not specified') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Test Date') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->test_date?->format('M d, Y') ?: __('Not specified') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Progress Report Link') }}</p>
+                                @if($customer->progress_report_link)
+                                    <a href="{{ str_starts_with($customer->progress_report_link, 'http') ? $customer->progress_report_link : 'https://' . $customer->progress_report_link }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex items-center text-base font-semibold text-slate-900 hover:text-slate-600 hover:underline">
+                                        <span class="truncate max-w-[15rem] sm:max-w-[12rem] xl:max-w-[16rem]">{{ $customer->progress_report_link }}</span>
+                                        <svg class="ml-1.5 h-4 w-4 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                @else
+                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ __('Not specified') }}</p>
+                                @endif
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Address') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->address ?: __('Not specified') }}</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Age') }}</p>
+                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->age ?: __('Not specified') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Job') }}</p>
+                                    <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->job ?: __('Not specified') }}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('College') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->college ?: __('Not specified') }}</p>
                             </div>
                         </div>
                     </div>

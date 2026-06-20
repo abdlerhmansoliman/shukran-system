@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomerStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,7 +32,12 @@ class Customer extends Model
         'customer_type',
         'tester_id',
         'placement_month',
-        'old_instructor_id',
+        'job',
+        'college',
+        'progress_report_link',
+        'test_date',
+        'status',
+        'status_changed_at',
     ];
 
     protected function casts(): array
@@ -40,6 +46,9 @@ class Customer extends Model
             'age' => 'integer',
             'wallet_balance' => 'decimal:2',
             'placement_month' => 'date',
+            'test_date' => 'date',
+            'status' => CustomerStatus::class,
+            'status_changed_at' => 'datetime',
         ];
     }
 
@@ -71,16 +80,6 @@ class Customer extends Model
     public function subscriptions()
     {
         return $this->customerPackages();
-    }
-
-    public function getStatusAttribute(): string
-    {
-        return $this->hasActiveSubscription() ? 'active' : 'inactive';
-    }
-
-    public function setStatusAttribute(mixed $value): void
-    {
-        // Customer status is virtual and comes from active subscriptions.
     }
 
     public function hasActiveSubscription(): bool
@@ -118,10 +117,5 @@ class Customer extends Model
     public function tester()
     {
         return $this->belongsTo(User::class, 'tester_id');
-    }
-
-    public function oldInstructor()
-    {
-        return $this->belongsTo(User::class, 'old_instructor_id');
     }
 }
