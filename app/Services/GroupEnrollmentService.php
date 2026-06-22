@@ -18,7 +18,6 @@ class GroupEnrollmentService
     public function availableCustomers(Group $group): Collection
     {
         return Customer::query()
-            ->when($group->category_id, fn ($query) => $query->where('category_id', $group->category_id))
             ->whereDoesntHave('groupEnrollments', fn ($query) => $query->where('group_id', $group->id))
             ->whereHas('customerPackages', function ($builder) {
                 $builder
@@ -78,9 +77,6 @@ class GroupEnrollmentService
                 ->whereIn('customer_id', $newCustomerIds)
                 ->where('status', 'active')
                 ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()))
-                ->whereHas('customer', function ($query) use ($group) {
-                    $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
-                })
                 ->latest('created_at')
                 ->get()
                 ->unique('customer_id')

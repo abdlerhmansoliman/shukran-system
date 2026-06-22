@@ -38,6 +38,8 @@ class Customer extends Model
         'test_date',
         'status',
         'status_changed_at',
+        'agreed_package_id',
+        'agreed_amount',
     ];
 
     protected function casts(): array
@@ -49,6 +51,7 @@ class Customer extends Model
             'test_date' => 'date',
             'status' => CustomerStatus::class,
             'status_changed_at' => 'datetime',
+            'agreed_amount' => 'decimal:2',
         ];
     }
 
@@ -100,6 +103,11 @@ class Customer extends Model
     public function payments()
     {
         return $this->morphMany(Payment::class, 'payable');
+    }
+
+    public function agreedPackage()
+    {
+        return $this->belongsTo(Package::class, 'agreed_package_id');
     }
 
     public function groupEnrollments()

@@ -86,6 +86,8 @@ class CustomerUpdateRequest extends FormRequest
             'progress_report_link' => ['nullable', 'string', 'max:2000'],
             'test_date' => ['nullable', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'agreed_package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
+            'agreed_amount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
         ];
     }
 

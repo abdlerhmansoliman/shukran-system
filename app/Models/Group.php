@@ -8,8 +8,8 @@ class Group extends Model
 {
     protected $fillable = [
         'name',
+        'package_id',
         'level_id',
-        'category_id',
         'instructor_id',
         'capacity',
         'start_date',
@@ -30,14 +30,14 @@ class Group extends Model
         ];
     }
 
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
+
     public function level()
     {
         return $this->belongsTo(Level::class);
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function instructor()

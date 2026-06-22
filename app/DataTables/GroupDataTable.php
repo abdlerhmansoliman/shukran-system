@@ -28,6 +28,7 @@ class GroupDataTable extends DataTable
                         <a href="'.e(route('groups.show', $group)).'" class="font-semibold text-slate-900">
                             '.e($group->name).'
                         </a>
+                        <div class="text-xs text-slate-500">'.e($group->package?->name ?: __('No package')).'</div>
                     </div>
                 ';
             })
@@ -91,7 +92,7 @@ class GroupDataTable extends DataTable
     public function query(Group $model): QueryBuilder
     {
         return $model->newQuery()
-            ->with(['instructor'])
+            ->with(['instructor', 'package'])
             ->withCount([
                 'groupEnrollments as active_enrollments_count' => fn (QueryBuilder $query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()),
             ])

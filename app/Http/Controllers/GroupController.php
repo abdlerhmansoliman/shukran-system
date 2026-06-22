@@ -10,6 +10,7 @@ use App\Http\Requests\GroupUpdateRequest;
 use App\Models\Category;
 use App\Models\Group;
 use App\Models\Level;
+use App\Models\Package;
 use App\Models\User;
 use App\Services\GroupEnrollmentService;
 use Illuminate\Http\Request;
@@ -84,7 +85,6 @@ class GroupController extends Controller
         Gate::authorize('view groups');
         $group->load([
             'level',
-            'category.parent',
             'instructor',
             'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
             'groupEnrollments.customer',
@@ -158,12 +158,11 @@ class GroupController extends Controller
     private function formData(): array
     {
         return [
-            'categories' => Category::query()
-                ->children()
-                ->with('parent')
+            'levels' => Level::query()
                 ->orderBy('name')
                 ->get(),
-            'levels' => Level::query()
+            'packages' => Package::query()
+                ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'statuses' => GroupStatus::options(),

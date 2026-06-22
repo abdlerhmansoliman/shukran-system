@@ -32,8 +32,8 @@ class GroupUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
+            'package_id' => ['nullable', 'exists:packages,id'],
             'level_id' => ['nullable', 'exists:levels,id'],
-            'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
             'instructor_id' => [
                 'nullable', 
                 'exists:users,id',

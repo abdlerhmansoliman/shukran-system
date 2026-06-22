@@ -133,6 +133,17 @@
 
             <div class="mt-6 space-y-5">
                 <div>
+                    <label for="package_id" class="text-sm font-semibold text-slate-700">{{ __('Product') }}</label>
+                    <select id="package_id" name="package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" @selected((string) old('package_id', $group?->package_id) === (string) $package->id)>{{ $package->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
                     <label for="level_id" class="text-sm font-semibold text-slate-700">{{ __('Level') }}</label>
                     <select id="level_id" name="level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
@@ -141,19 +152,6 @@
                         @endforeach
                     </select>
                     @error('level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
-                    <label for="category_id" class="text-sm font-semibold text-slate-700">{{ __('Category') }}</label>
-                    <select id="category_id" name="category_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected((string) old('category_id', $group?->category_id) === (string) $category->id)>
-                                {{ $category->parent ? $category->parent->name . ' / ' : '' }}{{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>

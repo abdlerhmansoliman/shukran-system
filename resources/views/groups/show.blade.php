@@ -81,16 +81,12 @@
                     <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Course Context') }}</p>
                     <div class="mt-5 space-y-4">
                         <div>
+                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Package') }}</p>
+                            <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->package?->name ?: __('Not specified') }}</p>
+                        </div>
+                        <div>
                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Level') }}</p>
                             <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->level?->name ?: __('Not specified') }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Category') }}</p>
-                            <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->category?->name ?: __('Not specified') }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Parent Category') }}</p>
-                            <p class="mt-2 text-base font-semibold text-slate-900">{{ $group->category?->parent?->name ?: __('Not specified') }}</p>
                         </div>
                     </div>
                 </div>

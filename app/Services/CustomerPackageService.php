@@ -78,5 +78,17 @@ class CustomerPackageService
         ]);
 
         $this->paymentService->applyWalletBalanceToNewSubscription($customer, $customerPackage, $userId);
+
+        if (in_array($customer->status, [
+            \App\Enums\CustomerStatus::New,
+            \App\Enums\CustomerStatus::Inactive,
+            \App\Enums\CustomerStatus::Finished,
+            \App\Enums\CustomerStatus::Paused,
+        ])) {
+            $customer->update([
+                'status' => \App\Enums\CustomerStatus::Waiting,
+                'status_changed_at' => now(),
+            ]);
+        }
     }
 }

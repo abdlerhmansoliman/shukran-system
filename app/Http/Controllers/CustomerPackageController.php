@@ -82,6 +82,20 @@ class CustomerPackageController extends Controller
                 'status' => 'cancelled',
                 'end_date' => now()->toDateString(),
             ]);
+
+            // If the customer has no other active subscriptions, mark them as Finished
+            $hasOtherActiveSubscriptions = \App\Models\CustomerPackage::query()
+                ->where('customer_id', $lockedCustomer->id)
+                ->where('id', '!=', $lockedCustomerPackage->id)
+                ->where('status', 'active')
+                ->exists();
+
+            if (! $hasOtherActiveSubscriptions) {
+                $lockedCustomer->update([
+                    'status' => \App\Enums\CustomerStatus::Finished,
+                    'status_changed_at' => now(),
+                ]);
+            }
         });
 
         return back()->with('success', __('Subscription removed from customer successfully.'));

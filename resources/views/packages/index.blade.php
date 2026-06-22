@@ -5,8 +5,8 @@
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="mb-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package Catalog') }}</p>
-                <h1 class="mt-2 text-3xl font-semibold text-slate-900">{{ __('Packages') }}</h1>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Product Catalog') }}</p>
+                <h1 class="mt-2 text-3xl font-semibold text-slate-900">{{ __('Products') }}</h1>
                 <p class="mt-2 text-sm text-slate-500">{{ __('Manage plan templates, prices, and availability from one searchable table.') }}</p>
             </div>
 

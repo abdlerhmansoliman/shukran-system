@@ -63,9 +63,6 @@ class CustomerBulkGroupEnrollmentRequest extends FormRequest
             ->whereIn('customer_id', $customerIds)
             ->where('status', 'active')
             ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()))
-            ->whereHas('customer', function ($query) use ($group) {
-                $query->when($group->category_id, fn ($builder) => $builder->where('category_id', $group->category_id));
-            })
             ->pluck('customer_id')
             ->map(fn ($customerId) => (int) $customerId);
 

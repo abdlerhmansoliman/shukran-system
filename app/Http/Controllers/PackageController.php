@@ -75,6 +75,8 @@ class PackageController extends Controller
     {
         return [
             'statuses' => PackageStatus::options(),
+            'programs' => \App\Models\Program::query()->orderBy('name')->get(),
+            'categories' => \App\Models\Category::query()->children()->with('parent')->orderBy('name')->get(),
         ];
     }
 }

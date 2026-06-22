@@ -210,6 +210,20 @@
                     </div>
 
                     <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Agreed Details (Expected Deal)') }}</p>
+                        <div class="mt-5 space-y-4">
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Agreed Package') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->agreedPackage?->name ?: __('Not specified') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Agreed Amount') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->agreed_amount !== null ? number_format((float) $customer->agreed_amount, 2) : __('Not specified') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                         <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Placement Context') }}</p>
                         <div class="mt-5 space-y-4">
                             <div>

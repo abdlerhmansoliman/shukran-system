@@ -13,6 +13,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupEnrollmentController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\WalletController;
@@ -54,6 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('groups', GroupController::class);
     Route::resource('packages', PackageController::class)->except('show');
     Route::resource('discounts', DiscountController::class)->except('show');
+    Route::resource('programs', ProgramController::class)->except('show');
     Route::resource('categories', CategoryController::class)->except('show');
     Route::resource('levels', LevelController::class)->except('show');
     Route::get('employees/{employee}/salary-payments/create', [EmployeeController::class, 'createSalaryPayment'])->name('employees.salary-payments.create');

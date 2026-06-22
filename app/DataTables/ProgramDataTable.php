@@ -2,71 +2,55 @@
 
 namespace App\DataTables;
 
-use App\Models\Package;
+use App\Models\Program;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
-use Illuminate\Support\Str;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Services\DataTable;
+use Illuminate\Support\Str;
 
-class PackageDataTable extends DataTable
+class ProgramDataTable extends DataTable
 {
     /**
      * Build the DataTable class.
      *
-     * @param  QueryBuilder<Package>  $query  Results from query() method.
+     * @param  QueryBuilder<Program>  $query  Results from query() method.
      */
     public function dataTable(QueryBuilder $query): EloquentDataTable
     {
         return (new EloquentDataTable($query))
             ->addIndexColumn()
-            ->editColumn('name', function (Package $package) {
-                return '<span class="font-semibold text-slate-900">'.e($package->name).'</span>';
+            ->editColumn('name', function (Program $program) {
+                return '<span class="font-semibold text-slate-900">'.e($program->name).'</span>';
             })
-            ->editColumn('levels_count', function (Package $package) {
-                return '<span class="font-medium text-slate-700">'.e($package->levels_count).'</span>';
-            })
-            ->editColumn('level_price', function (Package $package) {
-                return '<span class="font-semibold text-slate-900">'.e(number_format((float) $package->level_price, 2)).'</span>';
-            })
-            ->editColumn('program_id', function (Package $package) {
-                return $package->program ? '<span class="font-medium text-slate-700">'.e($package->program->name).'</span>' : '<span class="text-slate-400">-</span>';
-            })
-            ->editColumn('category_id', function (Package $package) {
-                return $package->category ? '<span class="font-medium text-slate-700">'.e($package->category->name).'</span>' : '<span class="text-slate-400">-</span>';
-            })
-            ->editColumn('sessions_count', function (Package $package) {
-                return '<span class="font-medium text-slate-700">'.e($package->sessions_count).'</span>';
-            })
-            ->editColumn('status', function (Package $package) {
-                $classes = $package->status === 'active'
+            ->editColumn('status', function (Program $program) {
+                $classes = $program->status === 'active'
                     ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
                     : 'bg-slate-100 text-slate-600 ring-slate-500/20';
 
-                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset '.$classes.'">'.e(__(Str::headline($package->status))).'</span>';
+                return '<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset '.$classes.'">'.e(__(Str::headline($program->status))).'</span>';
             })
-            ->editColumn('customer_packages_count', function (Package $package) {
-                return '<span class="font-medium text-slate-700">'.e($package->customer_packages_count).'</span>';
+            ->editColumn('packages_count', function (Program $program) {
+                return '<span class="font-medium text-slate-700">'.e($program->packages_count).'</span>';
             })
-            ->addColumn('action', function (Package $package) {
-                return view('components.package-datatable-actions', compact('package'))->render();
+            ->addColumn('action', function (Program $program) {
+                return view('components.program-datatable-actions', compact('program'))->render();
             })
-            ->rawColumns(['name', 'levels_count', 'level_price', 'program_id', 'category_id', 'sessions_count', 'status', 'customer_packages_count', 'action'])
+            ->rawColumns(['name', 'status', 'packages_count', 'action'])
             ->setRowId('id');
     }
 
     /**
      * Get the query source of dataTable.
      *
-     * @return QueryBuilder<Package>
+     * @return QueryBuilder<Program>
      */
-    public function query(Package $model): QueryBuilder
+    public function query(Program $model): QueryBuilder
     {
         return $model->newQuery()
-            ->with(['program', 'category'])
-            ->withCount('customerPackages')
-            ->select('packages.*');
+            ->withCount('packages')
+            ->select('programs.*');
     }
 
     /**
@@ -75,7 +59,7 @@ class PackageDataTable extends DataTable
     public function html(): HtmlBuilder
     {
         return $this->builder()
-            ->setTableId('package-table')
+            ->setTableId('program-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
             ->parameters([
@@ -85,17 +69,17 @@ class PackageDataTable extends DataTable
                 'lengthMenu' => [[10, 25, 50, 100], [10, 25, 50, 100]],
                 'language' => [
                     'search' => '',
-                    'searchPlaceholder' => __('Search packages...'),
-                    'lengthMenu' => __('Show _MENU_ packages'),
-                    'info' => __('Showing _START_ to _END_ of _TOTAL_ packages'),
-                    'infoEmpty' => __('No packages available'),
-                    'zeroRecords' => __('No matching packages found'),
+                    'searchPlaceholder' => __('Search programs...'),
+                    'lengthMenu' => __('Show _MENU_ programs'),
+                    'info' => __('Showing _START_ to _END_ of _TOTAL_ programs'),
+                    'infoEmpty' => __('No programs available'),
+                    'zeroRecords' => __('No matching programs found'),
                     'paginate' => [
                         'previous' => __('Previous'),
                         'next' => __('Next'),
                     ],
                 ],
-                'dom' => "<'package-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>".
+                'dom' => "<'program-table-toolbar flex flex-col gap-4 border-b border-slate-200 px-6 py-4 lg:flex-row lg:items-center lg:justify-between'<'flex flex-col gap-4 sm:flex-row sm:items-center'lf><'text-sm text-slate-500'i>>".
                     "<'overflow-x-auto'tr>".
                     "<'flex flex-col gap-4 border-t border-slate-200 px-6 py-4 sm:flex-row sm:items-center sm:justify-between'<'text-sm text-slate-500'i><'pagination-wrap'p>>",
                 'drawCallback' => 'function() {
@@ -118,7 +102,7 @@ class PackageDataTable extends DataTable
                     }
                 }',
             ])
-            ->orderBy(7, 'desc');
+            ->orderBy(0, 'asc');
     }
 
     /**
@@ -134,15 +118,10 @@ class PackageDataTable extends DataTable
                 ->width(40)
                 ->addClass('text-slate-400'),
 
-            Column::make('name')->title(__('Package'))->addClass('min-w-[260px]'),
-            Column::make('program_id')->title(__('Program'))->addClass('whitespace-nowrap'),
-            Column::make('category_id')->title(__('Category'))->addClass('whitespace-nowrap'),
-            Column::make('levels_count')->title(__('Levels'))->addClass('whitespace-nowrap'),
-            Column::make('sessions_count')->title(__('Sessions'))->addClass('whitespace-nowrap'),
-            Column::make('level_price')->title(__('Level Price'))->addClass('whitespace-nowrap'),
+            Column::make('name')->title(__('Name'))->addClass('min-w-[200px]'),
             Column::make('status')->title(__('Status')),
-            Column::make('customer_packages_count')
-                ->title(__('Assigned Customers'))
+            Column::make('packages_count')
+                ->title(__('Assigned Packages'))
                 ->searchable(false)
                 ->addClass('whitespace-nowrap'),
             Column::make('created_at')->title(__('Created'))->addClass('whitespace-nowrap min-w-[160px]')->render("data ? new Date(data).toLocaleDateString() : 'N/A'"),
@@ -161,6 +140,6 @@ class PackageDataTable extends DataTable
      */
     protected function filename(): string
     {
-        return 'Package_'.date('YmdHis');
+        return 'Program_'.date('YmdHis');
     }
 }

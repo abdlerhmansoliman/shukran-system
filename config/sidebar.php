@@ -38,8 +38,8 @@ return [
                     ],
                 ],
                 [
-                    'title' => 'Products',
-                    'subtitle' => 'Class products and enrollments',
+                    'title' => 'Groups',
+                    'subtitle' => 'Class Groups and enrollments',
                     'route' => 'groups.index',
                     'active' => ['groups.*'],
                     'permission' => 'view groups',
@@ -93,7 +93,7 @@ return [
                     ],
                     'items' => [
                         [
-                            'title' => 'Packages',
+                            'title' => 'Products',
                             'route' => 'packages.index',
                             'active' => ['packages.*'],
                             'permission' => 'view packages',
@@ -103,6 +103,12 @@ return [
                             'route' => 'discounts.index',
                             'active' => ['discounts.*'],
                             'permission' => 'view discounts',
+                        ],
+                        [
+                            'title' => 'Programs',
+                            'route' => 'programs.index',
+                            'active' => ['programs.*'],
+                            'permission' => 'view programs',
                         ],
                         [
                             'title' => 'Levels',

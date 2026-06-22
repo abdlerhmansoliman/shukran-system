@@ -31,6 +31,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'categories',
             'levels',
             'discounts',
+            'programs',
         ];
 
         $permissions = ['view reports', 'manage attendance']; // Keep custom non-resource permissions here

@@ -74,6 +74,12 @@
                     @error('country_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
+                                <div>
+                    <label for="age" class="text-sm font-semibold text-slate-700">{{ __('Age') }}</label>
+                    <input id="age" name="age" type="number" min="0" max="120" value="{{ old('age', $customer?->age) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('age')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
             </div>
         </div>
 
@@ -167,6 +173,32 @@
 
             </div>
         </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Agreed Details (Expected Deal)') }}</p>
+            <p class="mt-2 text-sm text-slate-500">{{ __('Record the package and amount the sales representative agreed upon with the customer before they officially subscribe.') }}</p>
+
+            <div class="mt-6 grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="agreed_package_id" class="text-sm font-semibold text-slate-700">{{ __('Agreed Package') }}</label>
+                    <select id="agreed_package_id" name="agreed_package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('None selected') }}</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" @selected((string) old('agreed_package_id', $customer?->agreed_package_id) === (string) $package->id)>
+                                {{ $package->name }} ({{ number_format((float) $package->level_price, 2) }}/level)
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('agreed_package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="agreed_amount" class="text-sm font-semibold text-slate-700">{{ __('Agreed Amount') }}</label>
+                    <input id="agreed_amount" name="agreed_amount" type="number" min="0" step="0.01" value="{{ old('agreed_amount', $customer?->agreed_amount) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('agreed_amount')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+        </div>
+
 
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-4">
@@ -330,11 +362,7 @@
                     @error('address')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
-                <div>
-                    <label for="age" class="text-sm font-semibold text-slate-700">{{ __('Age') }}</label>
-                    <input id="age" name="age" type="number" min="0" max="120" value="{{ old('age', $customer?->age) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                    @error('age')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
+
 
                 <div>
                     <label for="job" class="text-sm font-semibold text-slate-700">{{ __('Job') }}</label>

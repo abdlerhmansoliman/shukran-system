@@ -5,16 +5,16 @@
     <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Package Catalog') }}</p>
-                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Edit Package') }}</h1>
-                <p class="mt-2 text-sm text-slate-500">{{ __('Update package pricing, level count, and availability for :name.', ['name' => $package->name]) }}</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Product Catalog') }}</p>
+                <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Edit Product') }}</h1>
+                <p class="mt-2 text-sm text-slate-500">{{ __('Update product pricing, level count, and availability for :name.', ['name' => $package->name]) }}</p>
             </div>
 
             <a
                 href="{{ route('packages.index') }}"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
-                {{ __('Back to Packages') }}
+                {{ __('Back to Products') }}
             </a>
         </div>
 
@@ -36,7 +36,7 @@
 
             @include('packages._form', [
                 'package' => $package,
-                'submitLabel' => __('Update Package'),
+                'submitLabel' => __('Update Product'),
                 'cancelUrl' => route('packages.index'),
             ])
         </form>

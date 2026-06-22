@@ -132,7 +132,7 @@
                             <div class="flex items-start justify-between gap-3">
                                 <div>
                                     <p class="font-semibold text-slate-900">{{ $group->name }}</p>
-                                    <p class="mt-1 text-sm text-slate-500">{{ $group->category?->parent ? $group->category->parent->name . ' / ' : '' }}{{ $group->category?->name ?: __('No category') }}</p>
+                                    <p class="mt-1 text-sm text-slate-500">{{ $group->level?->name ?: __('No level specified') }}</p>
                                 </div>
                                 <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{{ __(\Illuminate\Support\Str::headline($group->status)) }}</span>
                             </div>
