@@ -30,7 +30,7 @@ class GroupEnrollmentController extends Controller
 
     public function store(GroupCustomerStoreRequest $request, Group $group)
     {
-        if (! in_array($group->status, [GroupStatus::Planned->value, GroupStatus::Active->value], true)) {
+        if (! in_array($group->status, [GroupStatus::Open->value, GroupStatus::Active->value], true)) {
             return redirect()
                 ->route('groups.show', $group)
                 ->with('error', __('Customers can only be added to planned or active groups.'));
@@ -58,7 +58,7 @@ class GroupEnrollmentController extends Controller
     {
         abort_unless((int) $groupEnrollment->group_id === (int) $group->id, 404);
 
-        if ($group->status !== GroupStatus::Planned->value) {
+        if ($group->status !== GroupStatus::Open->value) {
             return redirect()
                 ->route('groups.show', $group)
                 ->with('error', __('Enrollment confirmation can only be changed while the group is planned.'));

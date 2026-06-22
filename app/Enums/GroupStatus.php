@@ -4,18 +4,22 @@ namespace App\Enums;
 
 enum GroupStatus: string
 {
-    case Planned = 'planned';
+    case Draft = 'draft';
+    case Open = 'open';
     case Active = 'active';
-    case Completed = 'completed';
-    case Cancelled = 'cancelled';
+    case Inactive = 'inactive';
+    case Finished = 'finished';
+    case Hold = 'hold';
 
     public function label(): string
     {
         return match ($this) {
-            self::Planned => __('Planned'),
+            self::Draft => __('Draft'),
+            self::Open => __('Open'),
             self::Active => __('Active'),
-            self::Completed => __('Completed'),
-            self::Cancelled => __('Cancelled'),
+            self::Inactive => __('Inactive'),
+            self::Finished => __('Finished'),
+            self::Hold => __('Hold'),
         };
     }
 

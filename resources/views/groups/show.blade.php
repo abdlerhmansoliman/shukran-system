@@ -241,7 +241,7 @@
                                         </td>
                                         <td class="px-4 py-4 text-right">
                                             <div class="flex flex-wrap justify-end gap-2">
-                                                @if($group->status === 'planned' && $enrollment->status === 'pending')
+                                                @if(in_array($group->status, [\App\Enums\GroupStatus::Draft->value, \App\Enums\GroupStatus::Open->value]) && $enrollment->status === 'pending')
                                                     <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
                                                         @csrf
                                                         @method('PATCH')
@@ -261,7 +261,7 @@
                                                     </form>
                                                 @endif
 
-                                                @if($group->status === 'planned' && $enrollment->status === 'ready')
+                                                @if(in_array($group->status, [\App\Enums\GroupStatus::Draft->value, \App\Enums\GroupStatus::Open->value]) && $enrollment->status === 'ready')
                                                     <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
                                                         @csrf
                                                         @method('PATCH')
@@ -272,7 +272,7 @@
                                                     </form>
                                                 @endif
 
-                                                @if($group->status === 'planned' && in_array($enrollment->status, ['pending', 'ready'], true))
+                                                @if(in_array($group->status, [\App\Enums\GroupStatus::Draft->value, \App\Enums\GroupStatus::Open->value]) && in_array($enrollment->status, ['pending', 'ready'], true))
                                                     <form method="POST" action="{{ route('groups.customers.update', [$group, $enrollment]) }}">
                                                         @csrf
                                                         @method('PATCH')

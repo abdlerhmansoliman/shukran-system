@@ -13,7 +13,7 @@ class GroupStoreRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'status' => $this->input('status', GroupStatus::Planned->value),
+            'status' => $this->input('status', GroupStatus::Draft->value),
             'days_of_week' => collect($this->input('days_of_week', []))
                 ->filter()
                 ->values()

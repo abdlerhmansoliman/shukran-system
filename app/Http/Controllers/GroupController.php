@@ -60,7 +60,7 @@ class GroupController extends Controller
         }
 
         $conflictingInstructorIds = Group::query()
-            ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Planned->value])
+            ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Open->value])
             ->when($groupId, fn($q) => $q->where('id', '!=', $groupId))
             ->where('start_date', '<=', $endDate)
             ->where('end_date', '>=', $startDate)
@@ -94,7 +94,7 @@ class GroupController extends Controller
         return view('groups.show', [
             'group' => $group,
             'availableCustomers' => $this->groupEnrollmentService->availableCustomers($group),
-            'canAddCustomers' => in_array($group->status, [GroupStatus::Planned->value, GroupStatus::Active->value], true),
+            'canAddCustomers' => in_array($group->status, [GroupStatus::Open->value, GroupStatus::Active->value], true),
         ]);
     }
 

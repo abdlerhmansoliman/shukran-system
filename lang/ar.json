@@ -612,5 +612,7 @@
     "View wallet balance, top-up history, and outstanding installments.": "عرض رصيد المحفظة وسجل الشحن والأقساط المستحقة.",
     "Customer Info": "بيانات العميل",
     "Wallet": "المحفظة",
-    "Total": "الإجمالي"
+    "Total": "الإجمالي",
+    "Open": "مفتوحة",
+    "Hold": "إيقاف مؤقت"
 }

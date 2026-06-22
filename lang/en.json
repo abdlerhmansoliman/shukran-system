@@ -580,5 +580,7 @@
     "View wallet balance, top-up history, and outstanding installments.": "View wallet balance, top-up history, and outstanding installments.",
     "Customer Info": "Customer Info",
     "Wallet": "Wallet",
-    "Total": "Total"
+    "Total": "Total",
+    "Hold": "Hold",
+    "Open": "Open"
 }

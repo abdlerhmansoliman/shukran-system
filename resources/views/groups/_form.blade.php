@@ -1,5 +1,5 @@
 @php
-    $statusValue = old('status', $group?->status ?? \App\Enums\GroupStatus::Planned->value);
+    $statusValue = old('status', $group?->status ?? \App\Enums\GroupStatus::Draft->value);
     $selectedDays = collect(old('days_of_week', $group?->days_of_week ?? []))
         ->map(fn ($day) => (string) $day)
         ->all();

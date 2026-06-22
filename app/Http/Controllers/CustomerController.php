@@ -29,7 +29,7 @@ class CustomerController extends Controller
 
         return $datatable->render('customers.index', [
             'groups' => Group::query()
-                ->whereIn('status', [GroupStatus::Planned->value, GroupStatus::Active->value])
+                ->whereIn('status', [GroupStatus::Open->value, GroupStatus::Active->value])
                 ->orderBy('name')
                 ->get(),
             'levels' => Level::query()->orderBy('name')->get(),
