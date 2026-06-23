@@ -40,7 +40,7 @@ class GroupController extends Controller
     {
         Gate::authorize('create groups');
         $group = Group::query()->create($request->groupData());
-
+        
         return redirect()
             ->route('groups.show', $group)
             ->with('success', __('Group created successfully.'));

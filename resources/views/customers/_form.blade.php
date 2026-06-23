@@ -140,66 +140,6 @@
 
             </div>
         </div>
-    </div>
-
-    <div class="space-y-6">
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Classification') }}</p>
-
-            <div class="mt-6 space-y-5">
-                <div>
-                    <label for="level_id" class="text-sm font-semibold text-slate-700">{{ __('Level') }}</label>
-                    <select id="level_id" name="level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($levels as $level)
-                            <option value="{{ $level->id }}" @selected((string) old('level_id', $customer?->level_id) === (string) $level->id)>{{ $level->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
-                    <label for="category_id" class="text-sm font-semibold text-slate-700">{{ __('Category') }}</label>
-                    <select id="category_id" name="category_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('Not specified') }}</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected((string) old('category_id', $customer?->category_id) === (string) $category->id)>
-                                {{ $category->parent ? $category->parent->name . ' / ' : '' }}{{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-            </div>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Agreed Details (Expected Deal)') }}</p>
-            <p class="mt-2 text-sm text-slate-500">{{ __('Record the package and amount the sales representative agreed upon with the customer before they officially subscribe.') }}</p>
-
-            <div class="mt-6 grid gap-5 sm:grid-cols-2">
-                <div>
-                    <label for="agreed_package_id" class="text-sm font-semibold text-slate-700">{{ __('Agreed Package') }}</label>
-                    <select id="agreed_package_id" name="agreed_package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                        <option value="">{{ __('None selected') }}</option>
-                        @foreach($packages as $package)
-                            <option value="{{ $package->id }}" @selected((string) old('agreed_package_id', $customer?->agreed_package_id) === (string) $package->id)>
-                                {{ $package->name }} ({{ number_format((float) $package->level_price, 2) }}/level)
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('agreed_package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-
-                <div>
-                    <label for="agreed_amount" class="text-sm font-semibold text-slate-700">{{ __('Agreed Amount') }}</label>
-                    <input id="agreed_amount" name="agreed_amount" type="number" min="0" step="0.01" value="{{ old('agreed_amount', $customer?->agreed_amount) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
-                    @error('agreed_amount')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
-                </div>
-            </div>
-        </div>
-
-
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex items-start justify-between gap-4">
                 <div>
@@ -280,13 +220,13 @@
             @else
                 <div class="mt-5 space-y-3" data-package-assignment-list>
                     @foreach($packageAssignmentRows as $index => $assignment)
-                        <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_7rem_auto] sm:items-end" data-package-assignment-row>
+                        <div class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,10rem)_6rem_6rem_auto] lg:items-end" data-package-assignment-row>
                             <div>
-                                <label for="package_assignments_{{ $index }}_package_id" class="text-sm font-semibold text-slate-700">{{ __('Package Template') }}</label>
+                                <label for="package_assignments_{{ $index }}_package_id" class="text-sm font-semibold text-slate-700">{{ __('Name') }}</label>
                                 <select id="package_assignments_{{ $index }}_package_id" name="package_assignments[{{ $index }}][package_id]" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                                     <option value="">{{ __('No package') }}</option>
                                     @foreach($packages as $package)
-                                        <option value="{{ $package->id }}" @selected((string) $assignment['package_id'] === (string) $package->id)>
+                                        <option value="{{ $package->id }}" data-price="{{ $package->level_price }}" @selected((string) $assignment['package_id'] === (string) $package->id)>
                                             {{ $package->name }} - {{ __('Level Price: :price', ['price' => number_format((float) $package->level_price, 2)]) }}
                                         </option>
                                     @endforeach
@@ -298,7 +238,7 @@
                                 <select id="package_assignments_{{ $index }}_discount_id" name="package_assignments[{{ $index }}][discount_id]" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                                     <option value="">{{ __('No discount') }}</option>
                                     @foreach($discounts as $discount)
-                                        <option value="{{ $discount->id }}" @selected((string) ($assignment['discount_id'] ?? '') === (string) $discount->id)>
+                                        <option value="{{ $discount->id }}" data-discount-type="{{ $discount->type }}" data-discount-amount="{{ $discount->amount }}" @selected((string) ($assignment['discount_id'] ?? '') === (string) $discount->id)>
                                             {{ $discount->name }} ({{ $discount->type === 'percentage' ? $discount->amount . '%' : $discount->amount . ' fixed' }})
                                         </option>
                                     @endforeach
@@ -310,6 +250,13 @@
                                 <input id="package_assignments_{{ $index }}_levels_count" name="package_assignments[{{ $index }}][levels_count]" type="number" min="1" max="50" value="{{ $assignment['levels_count'] }}" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                             </div>
 
+                            <div>
+                                <label class="text-sm font-semibold text-slate-700">{{ __('Total') }}</label>
+                                <div class="mt-2 flex h-10 w-full items-center rounded-xl bg-transparent px-3 text-sm font-bold text-slate-900">
+                                    <span data-package-assignment-total>0.00</span>
+                                </div>
+                            </div>
+
                             <button type="button" class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100" data-package-assignment-remove>
                                 {{ __('Remove') }}
                             </button>
@@ -318,7 +265,7 @@
                 </div>
 
                 <button type="button" class="mt-4 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" data-package-assignment-add>
-                    {{ __('Add another package') }}
+                    {{ __('Add product') }}
                 </button>
 
                 @error('package_assignments')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
@@ -327,6 +274,66 @@
                 @error('package_assignments.*.levels_count')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
             @endif
         </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Classification') }}</p>
+
+            <div class="mt-6 space-y-5">
+                <div>
+                    <label for="level_id" class="text-sm font-semibold text-slate-700">{{ __('Level') }}</label>
+                    <select id="level_id" name="level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($levels as $level)
+                            <option value="{{ $level->id }}" @selected((string) old('level_id', $customer?->level_id) === (string) $level->id)>{{ $level->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="category_id" class="text-sm font-semibold text-slate-700">{{ __('Category') }}</label>
+                    <select id="category_id" name="category_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" @selected((string) old('category_id', $customer?->category_id) === (string) $category->id)>
+                                {{ $category->parent ? $category->parent->name . ' / ' : '' }}{{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+            </div>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Agreed Details') }}</p>
+
+            <div class="mt-6 grid gap-5 sm:grid-cols-2">
+                <div>
+                    <label for="agreed_package_id" class="text-sm font-semibold text-slate-700">{{ __('Agreed Package') }}</label>
+                    <select id="agreed_package_id" name="agreed_package_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('None selected') }}</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}" @selected((string) old('agreed_package_id', $customer?->agreed_package_id) === (string) $package->id)>
+                                {{ $package->name }} ({{ number_format((float) $package->level_price, 2) }}/level)
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('agreed_package_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="agreed_amount" class="text-sm font-semibold text-slate-700">{{ __('Agreed Amount') }}</label>
+                    <input id="agreed_amount" name="agreed_amount" type="number" min="0" step="0.01" value="{{ old('agreed_amount', $customer?->agreed_amount) }}" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    @error('agreed_amount')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+        </div>
+
+
+
 
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Placement Context') }}</p>
@@ -626,7 +633,53 @@
                         refreshRows();
                     });
 
+                    const calculateTotals = () => {
+                        list.querySelectorAll('[data-package-assignment-row]').forEach((row) => {
+                            const packageSelect = row.querySelector('select[name$="[package_id]"]');
+                            const discountSelect = row.querySelector('select[name$="[discount_id]"]');
+                            const levelsInput = row.querySelector('input[type="number"]');
+                            const totalEl = row.querySelector('[data-package-assignment-total]');
+
+                            if (!totalEl) return;
+
+                            let price = 0;
+                            if (packageSelect && packageSelect.selectedIndex >= 0) {
+                                const option = packageSelect.options[packageSelect.selectedIndex];
+                                price = parseFloat(option.dataset.price) || 0;
+                            }
+
+                            let levels = 1;
+                            if (levelsInput) {
+                                levels = parseInt(levelsInput.value) || 1;
+                            }
+
+                            let baseTotal = price * levels;
+                            let discountAmount = 0;
+
+                            if (discountSelect && discountSelect.selectedIndex >= 0) {
+                                const option = discountSelect.options[discountSelect.selectedIndex];
+                                const dType = option.dataset.discountType;
+                                const dAmount = parseFloat(option.dataset.discountAmount) || 0;
+
+                                if (dType === 'percentage') {
+                                    discountAmount = baseTotal * (dAmount / 100);
+                                } else if (dType === 'fixed') {
+                                    discountAmount = dAmount;
+                                }
+                            }
+
+                            if (discountAmount > baseTotal) discountAmount = baseTotal;
+
+                            const finalTotal = baseTotal - discountAmount;
+                            totalEl.textContent = finalTotal.toFixed(2);
+                        });
+                    };
+
+                    list.addEventListener('change', calculateTotals);
+                    list.addEventListener('input', calculateTotals);
+
                     refreshRows();
+                    calculateTotals();
                 });
             });
         </script>

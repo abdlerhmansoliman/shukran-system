@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CustomerStatus;
 use App\Enums\GroupEnrollmentStatus;
 use App\Enums\GroupStatus;
 use App\Http\Requests\CustomerBulkGroupEnrollmentRequest;
@@ -35,7 +36,7 @@ class GroupEnrollmentController extends Controller
                 ->route('groups.show', $group)
                 ->with('error', __('Customers can only be added to planned or active groups.'));
         }
-
+        
         $result = $this->groupEnrollmentService->enrollCustomerIds($group, collect($request->validated('customer_ids')));
 
         return redirect()
@@ -83,6 +84,12 @@ class GroupEnrollmentController extends Controller
                 GroupEnrollmentStatus::Rejected->value,
             ], true) ? now()->toDateString() : null,
         ]);
+
+        if ($validated['status'] === GroupEnrollmentStatus::Ready->value) {
+            $groupEnrollment->customer()->update([
+                'status' => CustomerStatus::Active->value,
+            ]);
+        }
 
         return redirect()
             ->route('groups.show', $group)

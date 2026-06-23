@@ -40,7 +40,7 @@ class InstructorAvailable implements ValidationRule
 
         $conflict = Group::query()
             ->where('instructor_id', $instructorId)
-            ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Planned->value])
+            ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Draft->value])
             ->when($this->ignoreGroupId, fn($q) => $q->where('id', '!=', $this->ignoreGroupId))
             ->where('start_date', '<=', $this->data['end_date'])
             ->where('end_date', '>=', $this->data['start_date'])

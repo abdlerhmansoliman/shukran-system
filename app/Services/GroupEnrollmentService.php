@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\CustomerStatus;
 use App\Enums\GroupEnrollmentStatus;
 use App\Enums\GroupStatus;
 use App\Models\Customer;
@@ -89,12 +90,18 @@ class GroupEnrollmentService
 
             foreach ($newCustomerIds as $customerId) {
                 $status = $this->newEnrollmentStatus($group);
-
+                
                 $group->groupEnrollments()->create([
                     'customer_id' => $customerId,
                     'customer_package_id' => $customerPackages->get($customerId)?->id,
                     'status' => $status,
                     'joined_at' => $status === GroupEnrollmentStatus::Active->value ? now()->toDateString() : null,
+                ]);
+            }
+
+            if ($newCustomerIds->isNotEmpty()) {
+                Customer::whereIn('id', $newCustomerIds)->update([
+                    'status' => CustomerStatus::WaitingForAppointment->value
                 ]);
             }
 

@@ -614,5 +614,10 @@
     "Wallet": "المحفظة",
     "Total": "الإجمالي",
     "Open": "مفتوحة",
-    "Hold": "إيقاف مؤقت"
+    "Hold": "إيقاف مؤقت",
+    "Add product": "أضف منتج",
+    "Agreed Details": "تفاصيل الاتفاق",
+    "Agreed Package": "الباقة المتفق عليها",
+    "Agreed Amount": "السعر المتفق عليه",
+    "None selected": "لا يوجد"
 }
