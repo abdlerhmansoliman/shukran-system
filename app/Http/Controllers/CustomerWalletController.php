@@ -18,6 +18,7 @@ class CustomerWalletController extends Controller
     public function create(Customer $customer)
     {
         Gate::authorize('edit customers');
+
         return view('customers.wallets.top-up', [
             'customer' => $customer,
             'paymentMethods' => PaymentMethod::query()

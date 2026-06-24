@@ -13,12 +13,14 @@ class ProgramController extends Controller
     public function index(ProgramDataTable $datatable)
     {
         Gate::authorize('view programs');
+
         return $datatable->render('programs.index');
     }
 
     public function create()
     {
         Gate::authorize('create programs');
+
         return view('programs.create');
     }
 
@@ -35,6 +37,7 @@ class ProgramController extends Controller
     public function edit(Program $program)
     {
         Gate::authorize('edit programs');
+
         return view('programs.edit', compact('program'));
     }
 

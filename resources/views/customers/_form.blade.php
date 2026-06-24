@@ -488,6 +488,22 @@
                             @endif
                         </div>
 
+                        <div class="mt-5">
+                            <label for="refund_reason_{{ $subscription->id }}" class="block text-sm font-semibold text-slate-900">{{ __('Refund Reason') }}</label>
+                            <input
+                                id="refund_reason_{{ $subscription->id }}"
+                                name="refund_reason"
+                                type="text"
+                                value="{{ (string) old('cancel_subscription_id') === (string) $subscription->id ? old('refund_reason') : '' }}"
+                                placeholder="{{ __('Enter reason for refund') }}"
+                                @disabled((float) $subscription->paid_amount <= 0)
+                                class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50"
+                            >
+                            @if((string) old('cancel_subscription_id') === (string) $subscription->id)
+                                @error('refund_reason')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                            @endif
+                        </div>
+
                         <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button
                                 type="button"

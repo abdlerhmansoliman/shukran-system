@@ -13,12 +13,14 @@ class LevelController extends Controller
     public function index(LevelDataTable $datatable)
     {
         Gate::authorize('view levels');
+
         return $datatable->render('levels.index');
     }
 
     public function create()
     {
         Gate::authorize('create levels');
+
         return view('levels.create');
     }
 
@@ -35,6 +37,7 @@ class LevelController extends Controller
     public function edit(Level $level)
     {
         Gate::authorize('edit levels');
+
         return view('levels.edit', compact('level'));
     }
 

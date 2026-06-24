@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AbsenceType;
 use App\Http\Requests\AttendanceStoreRequest;
 use App\Models\Department;
+use App\Models\Employee;
 use App\Models\EmployeeAbsence;
 use App\Services\AttendanceService;
 use Illuminate\Http\Request;
@@ -55,7 +56,7 @@ class AttendanceController extends Controller
         $userId = $request->user()->id;
 
         foreach ($request->absenceData() as $absence) {
-            $employee = \App\Models\Employee::findOrFail($absence['employee_id']);
+            $employee = Employee::findOrFail($absence['employee_id']);
 
             $this->attendanceService->recordAbsence(
                 employee: $employee,

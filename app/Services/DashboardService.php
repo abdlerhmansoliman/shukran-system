@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Models\Customer;
 use App\Models\CustomerPackage;
+use App\Models\Employee;
 use App\Models\Group;
-use App\Models\Payroll;
 use App\Models\Payment;
+use App\Models\Payroll;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -40,14 +41,26 @@ class DashboardService
         $draftPayrollCount = (clone $draftPayrollsQuery)->count();
         $draftPayrollTotal = (clone $draftPayrollsQuery)->sum('net_salary');
 
-        $incomingThisMonth = Payment::query()
+        $incomingCustomerPayments = Payment::query()
+            ->where('payable_type', Customer::class)
             ->where('direction', 'incoming')
             ->where('status', 'completed')
             ->whereMonth('paid_at', $currentMonth)
             ->whereYear('paid_at', $currentYear)
             ->sum('amount');
 
+        $outgoingCustomerRefunds = Payment::query()
+            ->where('payable_type', Customer::class)
+            ->where('direction', 'outgoing')
+            ->where('status', 'completed')
+            ->whereMonth('paid_at', $currentMonth)
+            ->whereYear('paid_at', $currentYear)
+            ->sum('amount');
+
+        $incomingThisMonth = $incomingCustomerPayments - $outgoingCustomerRefunds;
+
         $outgoingThisMonth = Payment::query()
+            ->where('payable_type', Employee::class)
             ->where('direction', 'outgoing')
             ->where('status', 'completed')
             ->whereMonth('paid_at', $currentMonth)

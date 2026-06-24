@@ -14,23 +14,26 @@ use App\Models\Employee;
 use App\Models\PaymentMethod;
 use App\Models\Payroll;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
+use App\Services\AttendanceService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class EmployeeController extends Controller
 {
     public function index(EmployeeDataTable $datatable)
     {
         Gate::authorize('view employees');
+
         return $datatable->render('employees.index');
     }
 
     public function create()
     {
         Gate::authorize('create employees');
+
         return view('employees.create', $this->formData());
     }
 
@@ -39,7 +42,7 @@ class EmployeeController extends Controller
         Gate::authorize('create employees');
         $employee = DB::transaction(function () use ($request) {
             $user = User::query()->create($request->userData());
-            
+
             if ($request->has('role_name')) {
                 $user->syncRoles([$request->input('role_name')]);
             }
@@ -70,7 +73,7 @@ class EmployeeController extends Controller
             'payments.payroll',
         ]);
 
-        $attendanceService = app(\App\Services\AttendanceService::class);
+        $attendanceService = app(AttendanceService::class);
         $attendanceSummary = $attendanceService->getMonthSummary($employee, now()->month, now()->year);
 
         return view('employees.show', compact('employee', 'attendanceSummary'));
@@ -104,7 +107,7 @@ class EmployeeController extends Controller
     public function createPayroll(Employee $employee)
     {
         Gate::authorize('edit employees');
-        
+
         $month = (int) request('month', now()->month);
         $year = (int) request('year', now()->year);
 
@@ -115,7 +118,7 @@ class EmployeeController extends Controller
             'payrolls' => fn ($query) => $query->where('month', $month)->where('year', $year),
         ]);
 
-        $attendanceService = app(\App\Services\AttendanceService::class);
+        $attendanceService = app(AttendanceService::class);
         $attendanceSummary = $attendanceService->getMonthSummary($employee, $month, $year);
         $absenceDeduction = $attendanceService->calculateAbsenceDeduction($employee, $month, $year);
 
@@ -215,11 +218,11 @@ class EmployeeController extends Controller
         Gate::authorize('edit employees');
         DB::transaction(function () use ($request, $employee) {
             $employee->user->update($request->userData());
-            
+
             if ($request->has('role_name')) {
                 $employee->user->syncRoles([$request->input('role_name')]);
             }
-            
+
             $employee->update($request->employeeData());
         });
 

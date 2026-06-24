@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\CustomerStatus;
 use App\Models\Customer;
+use App\Models\Discount;
 use App\Models\Package;
 
 class CustomerPackageService
@@ -40,24 +42,24 @@ class CustomerPackageService
     public function createPackageAssignment(Customer $customer, Package $package, int $levelsCount, ?int $userId, ?int $discountId = null): void
     {
         $price = round($package->level_price * $levelsCount, 2);
-        
+
         $discountAmount = 0;
         if ($discountId) {
-            $discount = \App\Models\Discount::find($discountId);
+            $discount = Discount::find($discountId);
             if ($discount) {
                 if ($discount->type === 'percentage') {
                     $discountAmount = round($price * ($discount->amount / 100), 2);
                 } else {
                     $discountAmount = round($discount->amount, 2);
                 }
-                
+
                 // Ensure discount doesn't exceed price
                 if ($discountAmount > $price) {
                     $discountAmount = $price;
                 }
             }
         }
-        
+
         $finalPrice = $price - $discountAmount;
 
         $customerPackage = $customer->customerPackages()->create([
@@ -80,13 +82,13 @@ class CustomerPackageService
         $this->paymentService->applyWalletBalanceToNewSubscription($customer, $customerPackage, $userId);
 
         if (in_array($customer->status, [
-            \App\Enums\CustomerStatus::New,
-            \App\Enums\CustomerStatus::Inactive,
-            \App\Enums\CustomerStatus::Finished,
-            \App\Enums\CustomerStatus::Paused,
+            CustomerStatus::New,
+            CustomerStatus::Inactive,
+            CustomerStatus::Finished,
+            CustomerStatus::Paused,
         ])) {
             $customer->update([
-                'status' => \App\Enums\CustomerStatus::Waiting,
+                'status' => CustomerStatus::Waiting,
                 'status_changed_at' => now(),
             ]);
         }

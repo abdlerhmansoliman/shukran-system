@@ -81,6 +81,7 @@ class CustomerDataTable extends DataTable
             })
             ->addColumn('level', function (Customer $customer) {
                 $level = $customer->currentLevel ?: $customer->entryLevel;
+
                 return $level ? '<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">'.e($level->name).'</span>' : '<span class="text-slate-400 text-sm">-</span>';
             })
             ->addColumn('category', function (Customer $customer) {
@@ -138,7 +139,7 @@ class CustomerDataTable extends DataTable
         if ($levelId = request('level_id')) {
             $query->where(function ($q) use ($levelId) {
                 $q->where('current_level_id', $levelId)
-                  ->orWhere('entry_level_id', $levelId);
+                    ->orWhere('entry_level_id', $levelId);
             });
         }
 

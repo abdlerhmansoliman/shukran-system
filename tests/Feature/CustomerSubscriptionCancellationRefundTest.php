@@ -50,6 +50,7 @@ class CustomerSubscriptionCancellationRefundTest extends TestCase
 
         $response = $this->actingAs($user)->delete(route('customers.subscriptions.destroy', [$customer, $customerPackage]), [
             'refund_amount' => 35,
+            'refund_reason' => 'Change of mind',
         ]);
 
         $response->assertRedirect();
@@ -64,5 +65,47 @@ class CustomerSubscriptionCancellationRefundTest extends TestCase
         $this->assertSame(Payment::METHOD_WALLET_BALANCE, $payment->method);
         $this->assertSame($customerPackage->id, $payment->customer_package_id);
         $this->assertSame(35.00, (float) $payment->amount);
+        $this->assertStringContainsString('Change of mind', $payment->notes);
+    }
+
+    #[Test]
+    public function refund_requires_a_reason_if_amount_is_greater_than_zero(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::query()->create([
+            'first_name' => 'Nour',
+            'last_name' => 'Hassan',
+            'phone' => '+20 1000000002',
+            'customer_type' => 'new',
+            'wallet_balance' => 10,
+        ]);
+
+        $package = Package::query()->create([
+            'name' => 'Speaking Course',
+            'levels_count' => 5,
+            'price' => 120,
+            'status' => 'active',
+        ]);
+
+        $customerPackage = CustomerPackage::query()->create([
+            'customer_id' => $customer->id,
+            'package_id' => $package->id,
+            'price' => 120,
+            'discount' => 0,
+            'final_price' => 120,
+            'paid_amount' => 80,
+            'remaining_amount' => 40,
+            'payment_status' => 'partial',
+            'start_date' => '2026-05-01',
+            'status' => 'active',
+            'created_by' => $user->id,
+        ]);
+
+        $response = $this->actingAs($user)->delete(route('customers.subscriptions.destroy', [$customer, $customerPackage]), [
+            'refund_amount' => 35,
+            'refund_reason' => '', // Blank
+        ]);
+
+        $response->assertSessionHasErrors('refund_reason');
     }
 }

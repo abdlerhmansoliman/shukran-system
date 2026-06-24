@@ -9,9 +9,11 @@ use App\Http\Requests\CustomerUpdateRequest;
 use App\Models\Category;
 use App\Models\Country;
 use App\Models\Customer;
+use App\Models\Discount;
 use App\Models\Group;
 use App\Models\Level;
 use App\Models\Package;
+use App\Models\PaymentMethod;
 use App\Models\User;
 use App\Services\CustomerPackageService;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +109,7 @@ class CustomerController extends Controller
             'customerPackages.package',
             'customerPackages.discountTemplate',
             'customerPackages.creator',
+            'customerPackages.payments',
             'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
             'groupEnrollments.group.instructor',
             'groupEnrollments.group.level',
@@ -125,7 +128,7 @@ class CustomerController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
-            'availableDiscounts' => \App\Models\Discount::query()
+            'availableDiscounts' => Discount::query()
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
@@ -153,14 +156,14 @@ class CustomerController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
-            'discounts' => \App\Models\Discount::query()
+            'discounts' => Discount::query()
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
             'users' => User::query()
                 ->orderBy('name')
                 ->get(),
-            'paymentMethods' => \App\Models\PaymentMethod::query()
+            'paymentMethods' => PaymentMethod::query()
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),

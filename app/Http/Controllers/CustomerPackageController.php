@@ -47,6 +47,16 @@ class CustomerPackageController extends Controller
         $validated = $request->validate([
             'cancel_subscription_id' => ['nullable', 'integer'],
             'refund_amount' => ['nullable', 'numeric', 'min:0', 'max:'.(float) $customerPackage->paid_amount],
+            'refund_reason' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ((float) $request->input('refund_amount') > 0 && blank($value)) {
+                        $fail(__('A reason is required for the refund.'));
+                    }
+                },
+            ],
         ], [
             'refund_amount.max' => __('The refund amount cannot be greater than the paid amount.'),
         ]);
@@ -76,7 +86,13 @@ class CustomerPackageController extends Controller
             $refundAmount = round((float) ($validated['refund_amount'] ?? 0), 2);
 
             if ($refundAmount > 0) {
-                $this->paymentService->refundCancelledSubscriptionToWallet($lockedCustomer, $lockedCustomerPackage, $refundAmount, $request->user()?->id);
+                $this->paymentService->refundCancelledSubscriptionToWallet(
+                    $lockedCustomer,
+                    $lockedCustomerPackage,
+                    $refundAmount,
+                    $request->user()?->id,
+                    $validated['refund_reason'] ?? null
+                );
             }
 
             $lockedCustomerPackage->update([

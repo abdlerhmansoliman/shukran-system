@@ -4,21 +4,23 @@ namespace App\Http\Controllers;
 
 use App\DataTables\RoleDataTable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Gate;
 
 class RoleController extends Controller
 {
     public function index(RoleDataTable $datatable)
     {
         Gate::authorize('view roles');
+
         return $datatable->render('roles.index');
     }
 
     public function create()
     {
         Gate::authorize('create roles');
+
         return view('roles.create', $this->formData());
     }
 
@@ -32,7 +34,7 @@ class RoleController extends Controller
         ]);
 
         $role = Role::create(['name' => $validated['name']]);
-        
+
         if (isset($validated['permissions'])) {
             $role->syncPermissions($validated['permissions']);
         }
@@ -45,6 +47,7 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         Gate::authorize('edit roles');
+
         return view('roles.edit', [
             'role' => $role,
             ...$this->formData($role),
@@ -54,19 +57,19 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         Gate::authorize('edit roles');
-        
+
         if (in_array($role->name, ['Admin'])) {
             return back()->with('error', __('The Admin role cannot be modified.'));
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $role->id],
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name,'.$role->id],
             'permissions' => ['nullable', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
         $role->update(['name' => $validated['name']]);
-        
+
         if (isset($validated['permissions'])) {
             $role->syncPermissions($validated['permissions']);
         } else {
@@ -105,8 +108,8 @@ class RoleController extends Controller
         foreach ($permissions as $permission) {
             $parts = explode(' ', $permission->name);
             $resource = count($parts) > 1 ? $parts[1] : 'general';
-            
-            if (!isset($groupedPermissions[$resource])) {
+
+            if (! isset($groupedPermissions[$resource])) {
                 $groupedPermissions[$resource] = [];
             }
             $groupedPermissions[$resource][] = $permission;

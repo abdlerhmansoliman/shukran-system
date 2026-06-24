@@ -71,7 +71,11 @@
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Total Paid') }}</p>
                 <p class="mt-3 text-2xl font-semibold text-slate-900">
-                    {{ number_format((float) $subscriptionPayments->where('status', 'completed')->sum('amount'), 2) }}
+                    {{ number_format(
+                        (float) $subscriptionPayments->where('status', 'completed')->where('direction', 'incoming')->sum('amount') -
+                        (float) $subscriptionPayments->where('status', 'completed')->where('direction', 'outgoing')->sum('amount'),
+                        2
+                    ) }}
                 </p>
             </div>
             <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

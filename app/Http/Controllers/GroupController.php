@@ -7,7 +7,6 @@ use App\Enums\GroupEnrollmentStatus;
 use App\Enums\GroupStatus;
 use App\Http\Requests\GroupStoreRequest;
 use App\Http\Requests\GroupUpdateRequest;
-use App\Models\Category;
 use App\Models\Group;
 use App\Models\Level;
 use App\Models\Package;
@@ -27,12 +26,14 @@ class GroupController extends Controller
     public function index(GroupDataTable $datatable)
     {
         Gate::authorize('view groups');
+
         return $datatable->render('groups.index');
     }
 
     public function create()
     {
         Gate::authorize('create groups');
+
         return view('groups.create', $this->formData());
     }
 
@@ -40,7 +41,7 @@ class GroupController extends Controller
     {
         Gate::authorize('create groups');
         $group = Group::query()->create($request->groupData());
-        
+
         return redirect()
             ->route('groups.show', $group)
             ->with('success', __('Group created successfully.'));
@@ -55,19 +56,19 @@ class GroupController extends Controller
         $daysOfWeek = (array) $request->query('days_of_week', []);
         $groupId = $request->query('group_id');
 
-        if (!$startDate || !$endDate || !$startTime || !$endTime) {
+        if (! $startDate || ! $endDate || ! $startTime || ! $endTime) {
             return response()->json(User::query()->orderBy('name')->get(['id', 'name']));
         }
 
         $conflictingInstructorIds = Group::query()
             ->whereIn('status', [GroupStatus::Active->value, GroupStatus::Open->value])
-            ->when($groupId, fn($q) => $q->where('id', '!=', $groupId))
+            ->when($groupId, fn ($q) => $q->where('id', '!=', $groupId))
             ->where('start_date', '<=', $endDate)
             ->where('end_date', '>=', $startDate)
             ->where('start_time', '<', $endTime)
             ->where('end_time', '>', $startTime)
             ->get()
-            ->filter(fn($g) => !empty(array_intersect($g->days_of_week ?? [], $daysOfWeek)))
+            ->filter(fn ($g) => ! empty(array_intersect($g->days_of_week ?? [], $daysOfWeek)))
             ->pluck('instructor_id')
             ->unique()
             ->filter();
@@ -101,6 +102,7 @@ class GroupController extends Controller
     public function edit(Group $group)
     {
         Gate::authorize('edit groups');
+
         return view('groups.edit', [
             'group' => $group,
             ...$this->formData(),

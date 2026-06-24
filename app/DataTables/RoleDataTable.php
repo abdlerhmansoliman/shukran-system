@@ -2,8 +2,8 @@
 
 namespace App\DataTables;
 
-use Spatie\Permission\Models\Role;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Spatie\Permission\Models\Role;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Column;

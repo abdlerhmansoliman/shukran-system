@@ -3,10 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Enums\GroupStatus;
+use App\Rules\InstructorAvailable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-
-use App\Rules\InstructorAvailable;
 
 class GroupUpdateRequest extends FormRequest
 {
@@ -35,9 +34,9 @@ class GroupUpdateRequest extends FormRequest
             'package_id' => ['nullable', 'exists:packages,id'],
             'level_id' => ['nullable', 'exists:levels,id'],
             'instructor_id' => [
-                'nullable', 
+                'nullable',
                 'exists:users,id',
-                new InstructorAvailable($this->all(), $this->route('group')?->id)
+                new InstructorAvailable($this->all(), $this->route('group')?->id),
             ],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:999'],
             'start_date' => ['nullable', 'date'],

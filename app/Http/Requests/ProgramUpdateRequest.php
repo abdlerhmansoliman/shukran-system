@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Program;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Models\Program;
 
 class ProgramUpdateRequest extends FormRequest
 {

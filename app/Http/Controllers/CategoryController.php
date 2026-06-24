@@ -15,12 +15,14 @@ class CategoryController extends Controller
     public function index(CategoryDataTable $datatable)
     {
         Gate::authorize('view categories');
+
         return $datatable->render('categories.index');
     }
 
     public function create()
     {
         Gate::authorize('create categories');
+
         return view('categories.create', $this->formData());
     }
 
@@ -73,6 +75,7 @@ class CategoryController extends Controller
     public function edit(Category $category)
     {
         Gate::authorize('edit categories');
+
         return view('categories.edit', [
             'category' => $category,
             ...$this->formData($category),

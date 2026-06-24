@@ -107,7 +107,7 @@ class PaymentService
         $this->applyCustomerPackagePayment($customerPackage, $amount, now()->toDateString());
     }
 
-    public function refundCancelledSubscriptionToWallet(Customer $customer, CustomerPackage $customerPackage, float $refundAmount, ?int $userId): void
+    public function refundCancelledSubscriptionToWallet(Customer $customer, CustomerPackage $customerPackage, float $refundAmount, ?int $userId, ?string $reason = null): void
     {
         if ($refundAmount <= 0) {
             return;
@@ -120,7 +120,7 @@ class PaymentService
             'payment_method_id' => null,
             'method' => Payment::METHOD_WALLET_BALANCE,
             'paid_at' => now()->toDateString(),
-            'notes' => __('Subscription refund was returned to the customer wallet.'),
+            'notes' => $reason,
             'direction' => 'outgoing',
             'created_by' => $userId,
         ]);

@@ -16,12 +16,14 @@ class DiscountController extends Controller
     {
         Gate::authorize('view discounts');
         $discounts = Discount::query()->latest()->paginate(10);
+
         return view('discounts.index', compact('discounts'));
     }
 
     public function create()
     {
         Gate::authorize('create discounts');
+
         return view('discounts.create');
     }
 
@@ -29,12 +31,14 @@ class DiscountController extends Controller
     {
         Gate::authorize('create discounts');
         Discount::create($request->validated());
+
         return redirect()->route('discounts.index')->with('success', __('Discount created successfully.'));
     }
 
     public function edit(Discount $discount)
     {
         Gate::authorize('edit discounts');
+
         return view('discounts.edit', compact('discount'));
     }
 
@@ -42,6 +46,7 @@ class DiscountController extends Controller
     {
         Gate::authorize('edit discounts');
         $discount->update($request->validated());
+
         return redirect()->route('discounts.index')->with('success', __('Discount updated successfully.'));
     }
 
@@ -49,6 +54,7 @@ class DiscountController extends Controller
     {
         Gate::authorize('delete discounts');
         $discount->delete();
+
         return redirect()->route('discounts.index')->with('success', __('Discount deleted successfully.'));
     }
 }

@@ -46,6 +46,7 @@ class CustomerPackageStoreRequest extends FormRequest
     public function discountId(): ?int
     {
         $discountId = $this->validated('discount_id');
+
         return $discountId ? (int) $discountId : null;
     }
 }
