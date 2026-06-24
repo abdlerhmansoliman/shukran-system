@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerFeedbackController;
@@ -8,14 +9,13 @@ use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerWalletController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountController;
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupEnrollmentController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\PackageController;
-use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;

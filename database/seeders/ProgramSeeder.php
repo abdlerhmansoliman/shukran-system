@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Program;
 use Illuminate\Database\Seeder;
 
 class ProgramSeeder extends Seeder
@@ -19,7 +19,7 @@ class ProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
-            \App\Models\Program::firstOrCreate(['name' => $program]);
+            Program::firstOrCreate(['name' => $program]);
         }
     }
 }

@@ -7,7 +7,7 @@
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Category Catalog') }}</p>
                 <h1 class="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{{ __('Add Category') }}</h1>
-                <p class="mt-2 text-sm text-slate-500">{{ __('Create a category for customer and group classification.') }}</p>
+                <p class="mt-2 text-sm text-slate-500">{{ __('Create a category for customer classification.') }}</p>
             </div>
 
             <a

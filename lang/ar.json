@@ -625,5 +625,7 @@
     "Driver": "قيادي",
     "Amiable": "ودود",
     "Expressive": "تعبيري",
-    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "هذا الاشتراك محجوز لتسجيل نشط في مجموعة. إزالته ستلغي التسجيل."
+    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "هذا الاشتراك محجوز لتسجيل نشط في مجموعة. إزالته ستلغي التسجيل.",
+    "Create a category for customer classification.": "أنشئ فئة لتصنيف العملاء.",
+    "Manage customer categories from one searchable table.": "أدر فئات العملاء من جدول واحد قابل للبحث."
 }

@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
-use App\Models\User;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -55,7 +55,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $employeeRole = Role::firstOrCreate(['name' => 'Employee']);
         $employeePermissions = [];
         foreach ($resources as $resource) {
-            if (!in_array($resource, ['users', 'roles'])) { // Employees shouldn't manage users/roles
+            if (! in_array($resource, ['users', 'roles'])) { // Employees shouldn't manage users/roles
                 $employeePermissions[] = "view $resource";
                 $employeePermissions[] = "create $resource";
             }

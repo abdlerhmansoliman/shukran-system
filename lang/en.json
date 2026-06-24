@@ -587,5 +587,7 @@
     "Driver": "Driver",
     "Amiable": "Amiable",
     "Expressive": "Expressive",
-    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment."
+    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.",
+    "Create a category for customer classification.": "Create a category for customer classification.",
+    "Manage customer categories from one searchable table.": "Manage customer categories from one searchable table."
 }

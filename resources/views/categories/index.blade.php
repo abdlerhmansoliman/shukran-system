@@ -7,7 +7,7 @@
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Category Catalog') }}</p>
                 <h1 class="mt-2 text-3xl font-semibold text-slate-900">{{ __('Categories') }}</h1>
-                <p class="mt-2 text-sm text-slate-500">{{ __('Manage customer and group categories from one searchable table.') }}</p>
+                <p class="mt-2 text-sm text-slate-500">{{ __('Manage customer categories from one searchable table.') }}</p>
             </div>
 
             @can('create categories')
