@@ -186,6 +186,10 @@
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Gender') }}</p>
                                 <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->gender ? __(\Illuminate\Support\Str::headline($customer->gender)) : __('Not specified') }}</p>
                             </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Personality') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->keywords ? $customer->keywords->label() : __('Not specified') }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -195,8 +199,12 @@
                         <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Classification') }}</p>
                         <div class="mt-5 space-y-4">
                             <div>
-                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Level') }}</p>
-                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->level?->name ?: __('Not specified') }}</p>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Entry Level') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->entryLevel?->name ?: __('Not specified') }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Current Level') }}</p>
+                                <p class="mt-2 text-base font-semibold text-slate-900">{{ $customer->currentLevel?->name ?: __('Not specified') }}</p>
                             </div>
                             <div>
                                 <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Category') }}</p>
@@ -416,14 +424,10 @@
                                         </div>
                                     </div>
 
-                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                    <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                         <div>
                                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Level') }}</p>
                                             <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->level?->name ?: __('Not specified') }}</p>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Category') }}</p>
-                                            <p class="mt-2 text-sm font-semibold text-slate-900">{{ $group?->category?->name ?: __('Not specified') }}</p>
                                         </div>
                                         <div>
                                             <p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">{{ __('Days') }}</p>
@@ -447,6 +451,74 @@
                             {{ $customer->notes ?: __('No notes available for this customer yet.') }}
                         </p>
                     </div>
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between gap-4">
+                        <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">{{ __('Feedback Timeline') }}</p>
+                        <span class="text-sm font-medium text-slate-500">
+                            {{ trans_choice('{0} No feedback|{1} 1 feedback entry|[2,*] :count feedback entries', $customer->feedbacks->count(), ['count' => $customer->feedbacks->count()]) }}
+                        </span>
+                    </div>
+
+                    <!-- Add Feedback Form -->
+                    <form action="{{ route('customers.feedbacks.store', $customer) }}" method="POST" class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                        @csrf
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="feedback_level_id" class="text-xs font-semibold text-slate-700 uppercase tracking-wider">{{ __('Associated Level') }}</label>
+                                <select id="feedback_level_id" name="level_id" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                                    <option value="">{{ __('General Feedback') }}</option>
+                                    @foreach($levels as $level)
+                                        <option value="{{ $level->id }}">{{ $level->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label for="feedback_text" class="text-xs font-semibold text-slate-700 uppercase tracking-wider">{{ __('Feedback Message') }}</label>
+                            <textarea id="feedback_text" name="feedback" rows="3" required placeholder="{{ __('Type feedback here...') }}" class="mt-2 block w-full rounded-xl border-slate-300 bg-white text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10"></textarea>
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800">
+                                {{ __('Add Feedback') }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Feedback Entries list -->
+                    @if($customer->feedbacks->isEmpty())
+                        <div class="mt-5 rounded-3xl bg-slate-50 p-5">
+                            <p class="text-sm leading-7 text-slate-600">
+                                {{ __('No feedback has been recorded for this customer yet.') }}
+                            </p>
+                        </div>
+                    @else
+                        <div class="mt-5 space-y-4">
+                            @foreach($customer->feedbacks as $feedback)
+                                <div class="rounded-3xl border border-slate-200 p-5">
+                                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                        <div>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="font-semibold text-slate-900">
+                                                    {{ $feedback->creator?->name ?: __('System / Unknown') }}
+                                                </span>
+                                                <span class="text-xs text-slate-400">
+                                                    {{ $feedback->created_at->format('M d, Y h:i A') }}
+                                                </span>
+                                                @if($feedback->level)
+                                                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                                                        {{ $feedback->level->name }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <p class="mt-3 text-sm leading-6 text-slate-600 whitespace-pre-line">{{ $feedback->feedback }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             </div>
 

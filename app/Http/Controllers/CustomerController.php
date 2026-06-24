@@ -96,19 +96,20 @@ class CustomerController extends Controller
         Gate::authorize('view customers');
 
         $customer->load([
-            'level',
+            'entryLevel',
+            'currentLevel',
+            'feedbacks.creator',
+            'feedbacks.level',
             'category.parent',
             'country',
             'creator',
             'tester',
-
             'customerPackages.package',
             'customerPackages.discountTemplate',
             'customerPackages.creator',
             'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
             'groupEnrollments.group.instructor',
             'groupEnrollments.group.level',
-            'groupEnrollments.group.category',
             'groupEnrollments.customerPackage.package',
             'payments' => fn ($query) => $query->latest('paid_at')->latest(),
             'payments.creator',
@@ -119,6 +120,7 @@ class CustomerController extends Controller
 
         return view('customers.show', [
             'customer' => $customer,
+            'levels' => Level::query()->orderBy('name')->get(),
             'availablePackages' => Package::query()
                 ->where('status', 'active')
                 ->orderBy('name')

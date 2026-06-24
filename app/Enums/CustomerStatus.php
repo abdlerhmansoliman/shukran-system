@@ -11,6 +11,7 @@ enum CustomerStatus: string
     case WaitingForAppointment = 'waiting_for_appointment';
     case Finished = 'finished';
     case Paused = 'paused';
+    case Dropped = 'dropped';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum CustomerStatus: string
             self::WaitingForAppointment => __('Waiting For Appointment'),
             self::Finished => __('Finished'),
             self::Paused => __('On Hold'),
+            self::Dropped => __('Dropped'),
         };
     }
 
@@ -38,6 +40,7 @@ enum CustomerStatus: string
             self::WaitingForAppointment => 'bg-violet-50 text-violet-700 ring-violet-600/20',
             self::Finished => 'bg-rose-50 text-rose-700 ring-rose-600/20',
             self::Paused => 'bg-orange-50 text-orange-700 ring-orange-600/20',
+            self::Dropped => 'bg-red-50 text-red-700 ring-red-600/20',
         };
     }
 

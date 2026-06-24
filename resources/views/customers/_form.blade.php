@@ -192,9 +192,8 @@
                                 @if($subscription->status === 'active')
                                     <button
                                         type="button"
-                                        @disabled($hasActiveEnrollment)
                                         x-on:click="$dispatch('open-modal', 'cancel-subscription-{{ $subscription->id }}')"
-                                        class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
+                                        class="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
                                     >
                                         {{ __('Remove') }}
                                     </button>
@@ -204,7 +203,7 @@
                             </div>
 
                             @if($hasActiveEnrollment)
-                                <p class="text-xs text-slate-500 lg:col-span-4">{{ __('This subscription is reserved by a group enrollment.') }}</p>
+                                <p class="text-xs text-slate-500 lg:col-span-4">{{ __('This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.') }}</p>
                             @endif
                         </div>
                     @empty
@@ -282,14 +281,25 @@
 
             <div class="mt-6 space-y-5">
                 <div>
-                    <label for="level_id" class="text-sm font-semibold text-slate-700">{{ __('Level') }}</label>
-                    <select id="level_id" name="level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                    <label for="entry_level_id" class="text-sm font-semibold text-slate-700">{{ __('Entry Level') }}</label>
+                    <select id="entry_level_id" name="entry_level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                         <option value="">{{ __('Not specified') }}</option>
                         @foreach($levels as $level)
-                            <option value="{{ $level->id }}" @selected((string) old('level_id', $customer?->level_id) === (string) $level->id)>{{ $level->name }}</option>
+                            <option value="{{ $level->id }}" @selected((string) old('entry_level_id', $customer?->entry_level_id) === (string) $level->id)>{{ $level->name }}</option>
                         @endforeach
                     </select>
-                    @error('level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                    @error('entry_level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="current_level_id" class="text-sm font-semibold text-slate-700">{{ __('Current Level') }}</label>
+                    <select id="current_level_id" name="current_level_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach($levels as $level)
+                            <option value="{{ $level->id }}" @selected((string) old('current_level_id', $customer?->current_level_id) === (string) $level->id)>{{ $level->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('current_level_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
@@ -305,6 +315,30 @@
                     @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
                 </div>
 
+                <div>
+                    <label for="status" class="text-sm font-semibold text-slate-700">{{ __('Status') }}</label>
+                    <select id="status" name="status" required class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        @foreach(\App\Enums\CustomerStatus::cases() as $status)
+                            <option value="{{ $status->value }}" @selected(old('status', $customer?->status?->value ?? \App\Enums\CustomerStatus::New->value) === $status->value)>
+                                {{ $status->label() }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('status')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
+
+                <div>
+                    <label for="keywords" class="text-sm font-semibold text-slate-700">{{ __('keywords') }}</label>
+                    <select id="keywords" name="keywords" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
+                        <option value="">{{ __('Not specified') }}</option>
+                        @foreach(\App\Enums\CustomerKeyword::cases() as $keyword)
+                            <option value="{{ $keyword->value }}" @selected(old('keywords', $customer?->keywords?->value ?? '') === $keyword->value)>
+                                {{ $keyword->label() }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('keywords')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
+                </div>
             </div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -390,6 +424,7 @@
             <textarea id="notes" name="notes" rows="5" class="mt-6 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">{{ old('notes', $customer?->notes) }}</textarea>
             @error('notes')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror
         </div>
+
     </div>
 </div>
 

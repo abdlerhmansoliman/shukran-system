@@ -90,7 +90,7 @@ class GroupEnrollmentService
 
             foreach ($newCustomerIds as $customerId) {
                 $status = $this->newEnrollmentStatus($group);
-                
+
                 $group->groupEnrollments()->create([
                     'customer_id' => $customerId,
                     'customer_package_id' => $customerPackages->get($customerId)?->id,
@@ -101,7 +101,8 @@ class GroupEnrollmentService
 
             if ($newCustomerIds->isNotEmpty()) {
                 Customer::whereIn('id', $newCustomerIds)->update([
-                    'status' => CustomerStatus::WaitingForAppointment->value
+                    'status' => CustomerStatus::WaitingForAppointment->value,
+                    'status_changed_at' => now(),
                 ]);
             }
 

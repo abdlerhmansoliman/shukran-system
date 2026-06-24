@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CustomerStatus;
 use App\Enums\GroupEnrollmentStatus;
 use App\Http\Requests\CustomerPackageStoreRequest;
 use App\Models\Customer;
@@ -43,14 +44,6 @@ class CustomerPackageController extends Controller
         Gate::authorize('edit customers');
         abort_unless((int) $customerPackage->customer_id === (int) $customer->id, 404);
 
-        $hasActiveEnrollment = $customerPackage->groupEnrollments()
-            ->whereIn('status', GroupEnrollmentStatus::reservedValues())
-            ->exists();
-
-        if ($hasActiveEnrollment) {
-            return back()->with('error', __('This subscription cannot be removed while it is reserved by a group enrollment.'));
-        }
-
         $validated = $request->validate([
             'cancel_subscription_id' => ['nullable', 'integer'],
             'refund_amount' => ['nullable', 'numeric', 'min:0', 'max:'.(float) $customerPackage->paid_amount],
@@ -72,6 +65,14 @@ class CustomerPackageController extends Controller
                 return;
             }
 
+            // Cancel associated active/pending group enrollments
+            $lockedCustomerPackage->groupEnrollments()
+                ->whereIn('status', GroupEnrollmentStatus::reservedValues())
+                ->update([
+                    'status' => GroupEnrollmentStatus::Cancelled->value,
+                    'left_at' => now()->toDateString(),
+                ]);
+
             $refundAmount = round((float) ($validated['refund_amount'] ?? 0), 2);
 
             if ($refundAmount > 0) {
@@ -84,7 +85,7 @@ class CustomerPackageController extends Controller
             ]);
 
             // If the customer has no other active subscriptions, mark them as Finished
-            $hasOtherActiveSubscriptions = \App\Models\CustomerPackage::query()
+            $hasOtherActiveSubscriptions = CustomerPackage::query()
                 ->where('customer_id', $lockedCustomer->id)
                 ->where('id', '!=', $lockedCustomerPackage->id)
                 ->where('status', 'active')
@@ -92,7 +93,7 @@ class CustomerPackageController extends Controller
 
             if (! $hasOtherActiveSubscriptions) {
                 $lockedCustomer->update([
-                    'status' => \App\Enums\CustomerStatus::Finished,
+                    'status' => CustomerStatus::Finished,
                     'status_changed_at' => now(),
                 ]);
             }

@@ -80,7 +80,8 @@ class CustomerDataTable extends DataTable
                 return '<span class="inline-flex items-center rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">'.e(__(Str::headline($customer->source))).'</span>';
             })
             ->addColumn('level', function (Customer $customer) {
-                return $customer->level ? '<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">'.e($customer->level->name).'</span>' : '<span class="text-slate-400 text-sm">-</span>';
+                $level = $customer->currentLevel ?: $customer->entryLevel;
+                return $level ? '<span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">'.e($level->name).'</span>' : '<span class="text-slate-400 text-sm">-</span>';
             })
             ->addColumn('category', function (Customer $customer) {
                 if (! $customer->category) {
@@ -120,7 +121,7 @@ class CustomerDataTable extends DataTable
     {
         $query = $model->newQuery()
             ->select('customers.*')
-            ->with(['level', 'category.parent']);
+            ->with(['entryLevel', 'currentLevel', 'category.parent']);
 
         if ($status = request('filter_status')) {
             $query->where('customers.status', $status);
@@ -135,7 +136,10 @@ class CustomerDataTable extends DataTable
         }
 
         if ($levelId = request('level_id')) {
-            $query->where('level_id', $levelId);
+            $query->where(function ($q) use ($levelId) {
+                $q->where('current_level_id', $levelId)
+                  ->orWhere('entry_level_id', $levelId);
+            });
         }
 
         if ($categoryId = request('category_id')) {

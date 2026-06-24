@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\CustomerKeyword;
+use App\Enums\CustomerStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -68,6 +70,7 @@ class CustomerStoreRequest extends FormRequest
             'second_phone_number' => ['nullable', 'string', 'max:255'],
             'source' => ['nullable', 'string', 'max:255'],
             'customer_type' => ['required', Rule::in(['new', 'old'])],
+            'status' => ['required', Rule::in(CustomerStatus::values())],
             'placement_month' => ['nullable', 'date'],
             'tester_id' => ['nullable', 'exists:users,id'],
             'package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
@@ -80,7 +83,8 @@ class CustomerStoreRequest extends FormRequest
             'gender' => ['nullable', Rule::in(['male', 'female'])],
             'address' => ['nullable', 'string', 'max:255'],
             'country_id' => ['nullable', 'exists:countries,id'],
-            'level_id' => ['nullable', 'exists:levels,id'],
+            'entry_level_id' => ['nullable', 'exists:levels,id'],
+            'current_level_id' => ['nullable', 'exists:levels,id'],
             'category_id' => ['nullable', Rule::exists('categories', 'id')->whereNotNull('parent_id')],
             'job' => ['nullable', 'string', 'max:255'],
             'college' => ['nullable', 'string', 'max:255'],
@@ -89,6 +93,7 @@ class CustomerStoreRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:1000'],
             'agreed_package_id' => ['nullable', Rule::exists('packages', 'id')->where('status', 'active')],
             'agreed_amount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'keywords' => ['nullable', Rule::in(CustomerKeyword::values())],
         ];
     }
 

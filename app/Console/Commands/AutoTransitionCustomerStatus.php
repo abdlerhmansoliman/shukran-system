@@ -43,6 +43,7 @@ class AutoTransitionCustomerStatus extends Command
                 CustomerStatus::Active->value,
                 CustomerStatus::Inactive->value,
                 CustomerStatus::Paused->value,
+                CustomerStatus::Dropped->value,
             ])
             ->where('updated_at', '<=', $cutoff)
             ->where(function ($query) use ($cutoff) {

@@ -619,5 +619,11 @@
     "Agreed Details": "تفاصيل الاتفاق",
     "Agreed Package": "الباقة المتفق عليها",
     "Agreed Amount": "السعر المتفق عليه",
-    "None selected": "لا يوجد"
+    "None selected": "لا يوجد",
+    "keywords": "الشخصية",
+    "Analytical": "تحليلي",
+    "Driver": "قيادي",
+    "Amiable": "ودود",
+    "Expressive": "تعبيري",
+    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "هذا الاشتراك محجوز لتسجيل نشط في مجموعة. إزالته ستلغي التسجيل."
 }

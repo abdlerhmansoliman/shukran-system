@@ -50,7 +50,8 @@ class CustomerFactory extends Factory
                 ? $staffIds->random()
                 : null,
             'notes' => fake()->boolean(70) ? fake()->sentence() : null,
-            'level_id' => Level::query()->inRandomOrder()->value('id'),
+            'entry_level_id' => Level::query()->inRandomOrder()->value('id'),
+            'current_level_id' => Level::query()->inRandomOrder()->value('id'),
             'category_id' => Category::query()->children()->inRandomOrder()->value('id'),
             'created_by' => null,
             'age' => fake()->numberBetween(6, 55),

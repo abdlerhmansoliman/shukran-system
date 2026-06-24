@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CustomerKeyword;
 use App\Enums\CustomerStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +22,8 @@ class Customer extends Model
         'second_phone_number',
         'source',
         'notes',
-        'level_id',
+        'entry_level_id',
+        'current_level_id',
         'category_id',
         'created_by',
         'age',
@@ -40,6 +42,7 @@ class Customer extends Model
         'status_changed_at',
         'agreed_package_id',
         'agreed_amount',
+        'keywords',
     ];
 
     protected function casts(): array
@@ -52,7 +55,17 @@ class Customer extends Model
             'status' => CustomerStatus::class,
             'status_changed_at' => 'datetime',
             'agreed_amount' => 'decimal:2',
+            'keywords' => CustomerKeyword::class,
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Customer $customer) {
+            if ($customer->isDirty('status')) {
+                $customer->status_changed_at = now();
+            }
+        });
     }
 
     public function creator()
@@ -60,9 +73,24 @@ class Customer extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function entryLevel()
+    {
+        return $this->belongsTo(Level::class, 'entry_level_id');
+    }
+
+    public function currentLevel()
+    {
+        return $this->belongsTo(Level::class, 'current_level_id');
+    }
+
     public function level()
     {
-        return $this->belongsTo(Level::class);
+        return $this->entryLevel();
+    }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(CustomerFeedback::class)->latest();
     }
 
     public function category()

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Console\Commands\AutoTransitionCustomerStatus;
 use App\Enums\CustomerStatus;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
@@ -17,7 +18,7 @@ class CustomerStatusTest extends TestCase
     #[Test]
     public function customer_status_enum_has_all_expected_cases(): void
     {
-        $expected = ['new', 'active', 'inactive', 'waiting', 'waiting_for_appointment', 'finished', 'paused'];
+        $expected = ['new', 'active', 'inactive', 'waiting', 'waiting_for_appointment', 'finished', 'paused', 'dropped'];
 
         $this->assertSame($expected, CustomerStatus::values());
     }
@@ -28,10 +29,11 @@ class CustomerStatusTest extends TestCase
         $options = CustomerStatus::options();
 
         $this->assertIsArray($options);
-        $this->assertCount(7, $options);
+        $this->assertCount(8, $options);
         $this->assertArrayHasKey('new', $options);
         $this->assertArrayHasKey('active', $options);
         $this->assertArrayHasKey('waiting_for_appointment', $options);
+        $this->assertArrayHasKey('dropped', $options);
     }
 
     #[Test]
@@ -102,15 +104,17 @@ class CustomerStatusTest extends TestCase
     }
 
     #[Test]
-    public function auto_transition_does_not_touch_active_or_paused_customers(): void
+    public function auto_transition_does_not_touch_active_paused_or_dropped_customers(): void
     {
         $activeCustomer = $this->createCustomerWithStatus(CustomerStatus::Active, daysAgo: 90);
         $pausedCustomer = $this->createCustomerWithStatus(CustomerStatus::Paused, daysAgo: 90);
+        $droppedCustomer = $this->createCustomerWithStatus(CustomerStatus::Dropped, daysAgo: 90);
 
         $this->artisan(AutoTransitionCustomerStatus::class)->assertSuccessful();
 
         $this->assertSame(CustomerStatus::Active, $activeCustomer->fresh()->status);
         $this->assertSame(CustomerStatus::Paused, $pausedCustomer->fresh()->status);
+        $this->assertSame(CustomerStatus::Dropped, $droppedCustomer->fresh()->status);
     }
 
     #[Test]
@@ -121,6 +125,49 @@ class CustomerStatusTest extends TestCase
         $this->artisan(AutoTransitionCustomerStatus::class)->assertSuccessful();
 
         $this->assertSame(CustomerStatus::Inactive, $inactiveCustomer->fresh()->status);
+    }
+
+    #[Test]
+    public function customer_can_be_created_with_specific_status(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('customers.store'), [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone' => '+20 1234567890',
+            'customer_type' => 'new',
+            'status' => CustomerStatus::Waiting->value,
+        ]);
+
+        $customer = Customer::query()->latest('id')->first();
+        $response->assertRedirect(route('customers.show', $customer));
+
+        $this->assertSame(CustomerStatus::Waiting, $customer->status);
+    }
+
+    #[Test]
+    public function customer_status_can_be_updated(): void
+    {
+        $user = User::factory()->create();
+        $customer = Customer::query()->create([
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone' => '+20 1234567890',
+            'customer_type' => 'new',
+            'status' => CustomerStatus::New,
+        ]);
+
+        $response = $this->actingAs($user)->put(route('customers.update', $customer), [
+            'first_name' => 'John',
+            'last_name' => 'Doe',
+            'phone' => '+20 1234567890',
+            'customer_type' => 'new',
+            'status' => CustomerStatus::Dropped->value,
+        ]);
+
+        $response->assertRedirect(route('customers.show', $customer));
+        $this->assertSame(CustomerStatus::Dropped, $customer->fresh()->status);
     }
 
     private function createCustomerWithStatus(CustomerStatus $status, int $daysAgo): Customer

@@ -102,7 +102,6 @@ class DashboardService
     public function getCurrentGroups(): Collection
     {
         return Group::query()
-            ->with(['category', 'category.parent'])
             ->withCount('activeEnrollments')
             ->whereIn('status', ['active', 'planned'])
             ->latest()

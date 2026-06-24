@@ -582,5 +582,10 @@
     "Wallet": "Wallet",
     "Total": "Total",
     "Hold": "Hold",
-    "Open": "Open"
+    "Open": "Open",
+    "Analytical": "Analytical",
+    "Driver": "Driver",
+    "Amiable": "Amiable",
+    "Expressive": "Expressive",
+    "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment.": "This subscription is reserved by an active group enrollment. Removing it will cancel the enrollment."
 }

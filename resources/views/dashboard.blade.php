@@ -163,7 +163,6 @@
                                 <p class="font-semibold text-slate-900">{{ $name ?: __('Unnamed customer') }}</p>
                                 <p class="mt-1 text-sm text-slate-500">{{ $customer->category?->parent ? $customer->category->parent->name . ' / ' : '' }}{{ $customer->category?->name ?: __('No category') }}</p>
                             </div>
-                            <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $customer->status === 'active' ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20' : 'bg-slate-100 text-slate-600 ring-1 ring-slate-500/20' }}">{{ __(\Illuminate\Support\Str::headline($customer->status)) }}</span>
                         </a>
                     @empty
                         <div class="rounded-2xl bg-slate-50 p-5 text-sm text-slate-500">{{ __('No customers yet.') }}</div>

@@ -36,7 +36,7 @@ class GroupEnrollmentController extends Controller
                 ->route('groups.show', $group)
                 ->with('error', __('Customers can only be added to planned or active groups.'));
         }
-        
+
         $result = $this->groupEnrollmentService->enrollCustomerIds($group, collect($request->validated('customer_ids')));
 
         return redirect()
@@ -88,6 +88,7 @@ class GroupEnrollmentController extends Controller
         if ($validated['status'] === GroupEnrollmentStatus::Ready->value) {
             $groupEnrollment->customer()->update([
                 'status' => CustomerStatus::Active->value,
+                'status_changed_at' => now(),
             ]);
         }
 

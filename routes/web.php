@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\CustomerPackageController;
 use App\Http\Controllers\CustomerPaymentController;
 use App\Http\Controllers\CustomerWalletController;
@@ -40,6 +41,7 @@ Route::middleware('auth')->group(function () {
     Route::post('customers/group-enrollments', [GroupEnrollmentController::class, 'bulkStore'])->name('customers.group-enrollments.store');
     Route::post('customers/{customer}/packages', [CustomerPackageController::class, 'store'])->name('customers.packages.store');
     Route::delete('customers/{customer}/subscriptions/{customerPackage}', [CustomerPackageController::class, 'destroy'])->name('customers.subscriptions.destroy');
+    Route::post('customers/{customer}/feedbacks', [CustomerFeedbackController::class, 'store'])->name('customers.feedbacks.store');
     Route::get('customers/{customer}/payments/create', [CustomerPaymentController::class, 'create'])->name('customers.payments.create');
     Route::post('customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customers.payments.store');
     Route::get('customers/{customer}/wallet', [WalletController::class, 'show'])->name('customers.wallet.show');
