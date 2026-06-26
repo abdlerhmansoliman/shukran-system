@@ -251,6 +251,7 @@
     "This customer has not been assigned any packages yet.": "لم يتم إسناد أي باقات لهذا العميل بعد.",
     "Unknown package": "باقة غير معروفة",
     "Levels: :count": "المستويات: :count",
+    "Remaining Levels: :count": "المستويات المتبقية: :count",
     "Price": "السعر",
     "Discount": "الخصم",
     "Final Price": "السعر النهائي",

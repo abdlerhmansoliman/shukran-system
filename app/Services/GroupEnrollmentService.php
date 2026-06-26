@@ -23,6 +23,7 @@ class GroupEnrollmentService
             ->whereHas('customerPackages', function ($builder) {
                 $builder
                     ->where('status', 'active')
+                    ->where('levels_count', '>', 0)
                     ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()));
             })
             ->withExists(['groupEnrollments as has_rejected' => function ($query) {
@@ -77,6 +78,7 @@ class GroupEnrollmentService
             $customerPackages = CustomerPackage::query()
                 ->whereIn('customer_id', $newCustomerIds)
                 ->where('status', 'active')
+                ->where('levels_count', '>', 0)
                 ->whereDoesntHave('groupEnrollments', fn ($query) => $query->whereIn('status', GroupEnrollmentStatus::reservedValues()))
                 ->latest('created_at')
                 ->get()
@@ -90,13 +92,18 @@ class GroupEnrollmentService
 
             foreach ($newCustomerIds as $customerId) {
                 $status = $this->newEnrollmentStatus($group);
+                $customerPackage = $customerPackages->get($customerId);
 
                 $group->groupEnrollments()->create([
                     'customer_id' => $customerId,
-                    'customer_package_id' => $customerPackages->get($customerId)?->id,
+                    'customer_package_id' => $customerPackage?->id,
                     'status' => $status,
                     'joined_at' => $status === GroupEnrollmentStatus::Active->value ? now()->toDateString() : null,
                 ]);
+
+                if ($status === GroupEnrollmentStatus::Active->value && $customerPackage) {
+                    $this->decrementPackageLevels($customerPackage);
+                }
             }
 
             if ($newCustomerIds->isNotEmpty()) {
@@ -115,13 +122,22 @@ class GroupEnrollmentService
 
     public function activateReadyEnrollments(Group $group): void
     {
-        $group->groupEnrollments()
+        $readyEnrollments = $group->groupEnrollments()
             ->where('status', GroupEnrollmentStatus::Ready->value)
-            ->update([
+            ->with('customerPackage')
+            ->get();
+
+        foreach ($readyEnrollments as $enrollment) {
+            $enrollment->update([
                 'status' => GroupEnrollmentStatus::Active->value,
                 'joined_at' => now()->toDateString(),
                 'left_at' => null,
             ]);
+
+            if ($enrollment->customerPackage) {
+                $this->decrementPackageLevels($enrollment->customerPackage);
+            }
+        }
     }
 
     private function newEnrollmentStatus(Group $group): string
@@ -129,5 +145,19 @@ class GroupEnrollmentService
         return $group->status === GroupStatus::Active->value
             ? GroupEnrollmentStatus::Active->value
             : GroupEnrollmentStatus::Pending->value;
+    }
+
+    private function decrementPackageLevels(CustomerPackage $customerPackage): void
+    {
+        if ($customerPackage->levels_count > 0) {
+            $customerPackage->decrement('levels_count');
+
+            if ($customerPackage->fresh()->levels_count <= 0) {
+                $customerPackage->update([
+                    'status' => 'completed',
+                    'end_date' => now()->toDateString(),
+                ]);
+            }
+        }
     }
 }

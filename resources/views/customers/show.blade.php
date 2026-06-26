@@ -453,7 +453,7 @@
                                                     <td class="px-6 py-4">
                                                         <div class="text-sm font-bold text-slate-900">{{ $customerPackage->package?->name ?: __('Unknown package') }}</div>
                                                         <div class="text-xs text-slate-500 mt-0.5">
-                                                            {{ __('Levels: :count', ['count' => $customerPackage->package?->levels_count ?? '—']) }}
+                                                            {{ __('Remaining Levels: :count', ['count' => $customerPackage->levels_count ?? '—']) }}
                                                             @if($customerPackage->discountTemplate)
                                                                 <span class="ml-2 text-rose-600 font-bold">({{ $customerPackage->discountTemplate->name }} - {{ number_format((float)$customerPackage->discount, 2) }})</span>
                                                             @endif

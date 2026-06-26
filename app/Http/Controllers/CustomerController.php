@@ -68,7 +68,7 @@ class CustomerController extends Controller
         Gate::authorize('edit customers');
 
         $customer->load([
-            'customerPackages' => fn ($query) => $query->with('package')->latest(),
+            'customerPackages' => fn ($query) => $query->with('package')->latest()->take(3),
             'customerPackages.groupEnrollments',
         ]);
 

@@ -251,6 +251,7 @@
     "This customer has not been assigned any packages yet.": "This customer has not been assigned any packages yet.",
     "Unknown package": "Unknown package",
     "Levels: :count": "Levels: :count",
+    "Remaining Levels: :count": "Remaining Levels: :count",
     "Price": "Price",
     "Discount": "Discount",
     "Final Price": "Final Price",
