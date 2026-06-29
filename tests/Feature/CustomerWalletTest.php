@@ -35,7 +35,7 @@ class CustomerWalletTest extends TestCase
             'notes' => 'Customer added funds.',
         ]);
 
-        $response->assertRedirect(route('customers.show', $customer));
+        $response->assertRedirect(route('customers.wallet.show', $customer));
 
         $this->assertSame(75.50, (float) $customer->fresh()->wallet_balance);
 
@@ -67,7 +67,7 @@ class CustomerWalletTest extends TestCase
             'reference' => 'TOP-UP-2',
         ]);
 
-        $response->assertRedirect(route('customers.show', $customer));
+        $response->assertRedirect(route('customers.wallet.show', $customer));
 
         $this->assertSame(200.00, (float) $customer->fresh()->wallet_balance);
 
@@ -101,7 +101,7 @@ class CustomerWalletTest extends TestCase
             'reference' => 'TOP-UP-3',
         ]);
 
-        $response->assertRedirect(route('customers.show', $customer));
+        $response->assertRedirect(route('customers.wallet.show', $customer));
 
         $this->assertSame(0.00, (float) $customer->fresh()->wallet_balance);
 

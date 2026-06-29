@@ -29,7 +29,7 @@ class CustomerSubscriptionWalletTest extends TestCase
         $package = Package::query()->create([
             'name' => 'Grammar Course',
             'levels_count' => 6,
-            'price' => 100,
+            'level_price' => 100,
             'status' => 'active',
         ]);
 

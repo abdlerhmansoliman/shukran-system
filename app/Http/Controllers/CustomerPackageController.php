@@ -12,6 +12,7 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 
 class CustomerPackageController extends Controller
 {
@@ -28,7 +29,19 @@ class CustomerPackageController extends Controller
                 ->lockForUpdate()
                 ->findOrFail($customer->id);
 
-            $this->customerPackageService->createPackageAssignments($lockedCustomer, [[
+            $profileId = $request->input('profile_id');
+            $profile = null;
+            if ($profileId) {
+                $profile = $lockedCustomer->profiles()->find($profileId);
+            }
+            if (! $profile) {
+                $profile = $lockedCustomer->profiles()->first() ?: $lockedCustomer->profiles()->create([
+                    'first_name' => $lockedCustomer->first_name,
+                    'last_name' => $lockedCustomer->last_name,
+                ]);
+            }
+
+            $this->customerPackageService->createPackageAssignments($profile, [[
                 'package_id' => $request->packageId(),
                 'levels_count' => $request->levelsCount(),
             ]], $request->user()?->id);
@@ -48,14 +61,10 @@ class CustomerPackageController extends Controller
             'cancel_subscription_id' => ['nullable', 'integer'],
             'refund_amount' => ['nullable', 'numeric', 'min:0', 'max:'.(float) $customerPackage->paid_amount],
             'refund_reason' => [
+                Rule::requiredIf((float) $request->input('refund_amount') > 0),
                 'nullable',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ((float) $request->input('refund_amount') > 0 && blank($value)) {
-                        $fail(__('A reason is required for the refund.'));
-                    }
-                },
             ],
         ], [
             'refund_amount.max' => __('The refund amount cannot be greater than the paid amount.'),

@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Enums\CustomerStatus;
-use App\Models\Customer;
 use App\Models\Discount;
 use App\Models\Package;
+use App\Models\Profile;
 
 class CustomerPackageService
 {
@@ -16,7 +16,7 @@ class CustomerPackageService
     /**
      * @param  array<int, array{package_id: int, levels_count: int, discount_id?: int|null}>  $assignments
      */
-    public function createPackageAssignments(Customer $customer, array $assignments, ?int $userId): void
+    public function createPackageAssignments(Profile $profile, array $assignments, ?int $userId): void
     {
         if ($assignments === []) {
             return;
@@ -35,11 +35,11 @@ class CustomerPackageService
                 continue;
             }
 
-            $this->createPackageAssignment($customer, $package, $assignment['levels_count'], $userId, $assignment['discount_id'] ?? null);
+            $this->createPackageAssignment($profile, $package, $assignment['levels_count'], $userId, $assignment['discount_id'] ?? null);
         }
     }
 
-    public function createPackageAssignment(Customer $customer, Package $package, int $levelsCount, ?int $userId, ?int $discountId = null): void
+    public function createPackageAssignment(Profile $profile, Package $package, int $levelsCount, ?int $userId, ?int $discountId = null): void
     {
         $price = round($package->level_price * $levelsCount, 2);
 
@@ -62,7 +62,9 @@ class CustomerPackageService
 
         $finalPrice = $price - $discountAmount;
 
-        $customerPackage = $customer->customerPackages()->create([
+        $customerPackage = $profile->customerPackages()->create([
+            'customer_id' => $profile->customer_id,
+            'profile_id' => $profile->id,
             'package_id' => $package->id,
             'discount_id' => $discountId,
             'levels_count' => $levelsCount,
@@ -79,15 +81,15 @@ class CustomerPackageService
             'created_by' => $userId,
         ]);
 
-        $this->paymentService->applyWalletBalanceToNewSubscription($customer, $customerPackage, $userId);
+        $this->paymentService->applyWalletBalanceToNewSubscription($profile->customer, $customerPackage, $userId);
 
-        if (in_array($customer->status, [
+        if (in_array($profile->customer->status, [
             CustomerStatus::New,
             CustomerStatus::Inactive,
             CustomerStatus::Finished,
             CustomerStatus::Paused,
         ])) {
-            $customer->update([
+            $profile->customer->update([
                 'status' => CustomerStatus::Waiting,
                 'status_changed_at' => now(),
             ]);

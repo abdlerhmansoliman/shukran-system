@@ -10,6 +10,7 @@ class CustomerFeedback extends Model
 
     protected $fillable = [
         'customer_id',
+        'profile_id',
         'level_id',
         'feedback',
         'created_by',
@@ -18,6 +19,11 @@ class CustomerFeedback extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function profile()
+    {
+        return $this->belongsTo(Profile::class);
     }
 
     public function level()

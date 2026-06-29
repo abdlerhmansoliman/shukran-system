@@ -9,6 +9,7 @@ class GroupEnrollment extends Model
     protected $fillable = [
         'group_id',
         'customer_id',
+        'profile_id',
         'customer_package_id',
         'status',
         'joined_at',
@@ -31,6 +32,11 @@ class GroupEnrollment extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function profile()
+    {
+        return $this->belongsTo(Profile::class);
     }
 
     public function customerPackage()

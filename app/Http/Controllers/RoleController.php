@@ -77,7 +77,7 @@ class RoleController extends Controller
         }
 
         return redirect()
-            ->route('roles.edit', $role)
+            ->route('roles.index')
             ->with('success', __('Role updated successfully.'));
     }
 

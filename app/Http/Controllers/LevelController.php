@@ -30,7 +30,7 @@ class LevelController extends Controller
         $level = Level::query()->create($request->levelData());
 
         return redirect()
-            ->route('levels.edit', $level)
+            ->route('levels.index')
             ->with('success', __('Level created successfully.'));
     }
 
@@ -47,7 +47,7 @@ class LevelController extends Controller
         $level->update($request->levelData());
 
         return redirect()
-            ->route('levels.edit', $level)
+            ->route('levels.index')
             ->with('success', __('Level updated successfully.'));
     }
 

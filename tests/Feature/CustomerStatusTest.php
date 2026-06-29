@@ -8,6 +8,7 @@ use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -174,19 +175,23 @@ class CustomerStatusTest extends TestCase
     {
         $pastDate = Carbon::now()->subDays($daysAgo);
 
-        $customer = Customer::query()->create([
-            'first_name' => 'Test',
-            'last_name' => $status->value,
-            'phone' => '+20 '.random_int(1000000000, 9999999999),
-            'customer_type' => 'new',
-            'status' => $status,
-            'status_changed_at' => $pastDate,
-        ]);
-
-        // Manually set updated_at to the past date to simulate inactivity
-        Customer::withoutTimestamps(function () use ($customer, $pastDate) {
-            $customer->update(['updated_at' => $pastDate]);
+        $customer = Customer::withoutEvents(function () use ($status) {
+            return Customer::query()->create([
+                'first_name' => 'Test',
+                'last_name' => $status->value,
+                'phone' => '+20 '.random_int(1000000000, 9999999999),
+                'customer_type' => 'new',
+                'status' => $status,
+            ]);
         });
+
+        DB::table('customers')
+            ->where('id', $customer->id)
+            ->update([
+                'status_changed_at' => $pastDate,
+                'created_at' => $pastDate,
+                'updated_at' => $pastDate,
+            ]);
 
         return $customer;
     }

@@ -33,7 +33,7 @@ class PackageController extends Controller
         $package = Package::query()->create($request->packageData());
 
         return redirect()
-            ->route('packages.edit', $package)
+            ->route('packages.index')
             ->with('success', __('Package created successfully.'));
     }
 
@@ -53,7 +53,7 @@ class PackageController extends Controller
         $package->update($request->packageData());
 
         return redirect()
-            ->route('packages.edit', $package)
+            ->route('packages.index')
             ->with('success', __('Package updated successfully.'));
     }
 

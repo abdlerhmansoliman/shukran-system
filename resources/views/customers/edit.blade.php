@@ -17,7 +17,7 @@
             </div>
 
             <a
-                href="{{ route('customers.show', $customer) }}"
+                href="{{ route('customers.show', [$customer, 'profile_id' => request('profile_id')]) }}"
                 class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
             >
                 {{ __('Back to Profile') }}
@@ -42,14 +42,14 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('customers.update', $customer) }}" class="space-y-6">
+        <form method="POST" action="{{ route('customers.update', [$customer, 'profile_id' => request('profile_id')]) }}" class="space-y-6">
             @csrf
             @method('PUT')
 
             @include('customers._form', [
                 'customer' => $customer,
                 'submitLabel' => __('Update Customer'),
-                'cancelUrl' => route('customers.show', $customer),
+                'cancelUrl' => route('customers.show', [$customer, 'profile_id' => request('profile_id')]),
             ])
         </form>
     </div>

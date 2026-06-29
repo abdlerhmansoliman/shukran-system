@@ -30,7 +30,7 @@ class ProgramController extends Controller
         $program = Program::query()->create($request->programData());
 
         return redirect()
-            ->route('programs.edit', $program)
+            ->route('programs.index')
             ->with('success', __('Program created successfully.'));
     }
 
@@ -47,7 +47,7 @@ class ProgramController extends Controller
         $program->update($request->programData());
 
         return redirect()
-            ->route('programs.edit', $program)
+            ->route('programs.index')
             ->with('success', __('Program updated successfully.'));
     }
 

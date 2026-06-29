@@ -102,10 +102,62 @@ class CustomerUpdateRequest extends FormRequest
     public function customerData(): array
     {
         $validated = $this->validated();
-        unset($validated['package_id'], $validated['package_assignments']);
-        $validated['wallet_balance'] = round((float) ($validated['wallet_balance'] ?? 0), 2);
 
-        return $validated;
+        $customerKeys = [
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'second_phone_number',
+            'source',
+            'notes',
+            'address',
+            'country_id',
+            'wallet_balance',
+            'customer_type',
+            'status',
+        ];
+
+        $data = collect($validated)->only($customerKeys)->toArray();
+        $data['wallet_balance'] = round((float) ($data['wallet_balance'] ?? 0), 2);
+
+        return $data;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function profileData(): array
+    {
+        $validated = $this->validated();
+
+        $profileKeys = [
+            'first_name',
+            'last_name',
+            'age',
+            'gender',
+            'entry_level_id',
+            'current_level_id',
+            'category_id',
+            'tester_id',
+            'placement_month',
+            'job',
+            'college',
+            'progress_report_link',
+            'test_date',
+            'agreed_package_id',
+            'agreed_amount',
+            'keywords',
+            'notes',
+        ];
+
+        $data = collect($validated)->only($profileKeys)->toArray();
+
+        if (filled($data['entry_level_id'] ?? null) && blank($data['current_level_id'] ?? null)) {
+            $data['current_level_id'] = $data['entry_level_id'];
+        }
+
+        return $data;
     }
 
     /**

@@ -8,6 +8,7 @@ class CustomerPackage extends Model
 {
     protected $fillable = [
         'customer_id',
+        'profile_id',
         'package_id',
         'discount_id',
         'levels_count',
@@ -42,6 +43,11 @@ class CustomerPackage extends Model
     public function customer()
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function profile()
+    {
+        return $this->belongsTo(Profile::class);
     }
 
     public function package()

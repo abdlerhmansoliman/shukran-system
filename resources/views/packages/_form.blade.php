@@ -40,13 +40,9 @@
             <select id="category_id" name="category_id" class="mt-2 block w-full rounded-xl border-slate-300 text-sm text-slate-700 shadow-sm focus:border-slate-900 focus:ring-slate-900/10">
                 <option value="">{{ __('None') }}</option>
                 @foreach($categories as $category)
-                    <optgroup label="{{ $category->name }}">
-                        @foreach($category->children as $child)
-                            <option value="{{ $child->id }}" @selected((string) old('category_id', $package?->category_id) === (string) $child->id)>
-                                {{ $child->name }}
-                            </option>
-                        @endforeach
-                    </optgroup>
+                    <option value="{{ $category->id }}" @selected((string) old('category_id', $package?->category_id) === (string) $category->id)>
+                        {{ $category->parent ? $category->parent->name . ' / ' : '' }}{{ $category->name }}
+                    </option>
                 @endforeach
             </select>
             @error('category_id')<p class="mt-2 text-sm text-rose-600">{{ $message }}</p>@enderror

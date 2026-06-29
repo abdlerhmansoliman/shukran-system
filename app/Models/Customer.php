@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\CustomerKeyword;
 use App\Enums\CustomerStatus;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +13,10 @@ class Customer extends Model
     /** @use HasFactory<CustomerFactory> */
     use HasFactory, SoftDeletes;
 
+    protected $attributes = [
+        'status' => 'new',
+    ];
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -22,40 +25,21 @@ class Customer extends Model
         'second_phone_number',
         'source',
         'notes',
-        'entry_level_id',
-        'current_level_id',
-        'category_id',
         'created_by',
-        'age',
-        'gender',
         'address',
         'country_id',
         'wallet_balance',
         'customer_type',
-        'tester_id',
-        'placement_month',
-        'job',
-        'college',
-        'progress_report_link',
-        'test_date',
         'status',
         'status_changed_at',
-        'agreed_package_id',
-        'agreed_amount',
-        'keywords',
     ];
 
     protected function casts(): array
     {
         return [
-            'age' => 'integer',
             'wallet_balance' => 'decimal:2',
-            'placement_month' => 'date',
-            'test_date' => 'date',
             'status' => CustomerStatus::class,
             'status_changed_at' => 'datetime',
-            'agreed_amount' => 'decimal:2',
-            'keywords' => CustomerKeyword::class,
         ];
     }
 
@@ -73,29 +57,14 @@ class Customer extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function entryLevel()
+    public function profiles()
     {
-        return $this->belongsTo(Level::class, 'entry_level_id');
-    }
-
-    public function currentLevel()
-    {
-        return $this->belongsTo(Level::class, 'current_level_id');
-    }
-
-    public function level()
-    {
-        return $this->entryLevel();
+        return $this->hasMany(Profile::class);
     }
 
     public function feedbacks()
     {
         return $this->hasMany(CustomerFeedback::class)->latest();
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function country()
@@ -133,11 +102,6 @@ class Customer extends Model
         return $this->morphMany(Payment::class, 'payable');
     }
 
-    public function agreedPackage()
-    {
-        return $this->belongsTo(Package::class, 'agreed_package_id');
-    }
-
     public function groupEnrollments()
     {
         return $this->hasMany(GroupEnrollment::class);
@@ -148,10 +112,5 @@ class Customer extends Model
         return $this->belongsToMany(Group::class, 'group_enrollments')
             ->withPivot(['customer_package_id', 'status', 'joined_at', 'left_at'])
             ->withTimestamps();
-    }
-
-    public function tester()
-    {
-        return $this->belongsTo(User::class, 'tester_id');
     }
 }

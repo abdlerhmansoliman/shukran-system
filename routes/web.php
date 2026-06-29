@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerFeedbackController;
 use App\Http\Controllers\CustomerPackageController;
 use App\Http\Controllers\CustomerPaymentController;
+use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CustomerWalletController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiscountController;
@@ -42,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('customers/{customer}/packages', [CustomerPackageController::class, 'store'])->name('customers.packages.store');
     Route::delete('customers/{customer}/subscriptions/{customerPackage}', [CustomerPackageController::class, 'destroy'])->name('customers.subscriptions.destroy');
     Route::post('customers/{customer}/feedbacks', [CustomerFeedbackController::class, 'store'])->name('customers.feedbacks.store');
+    Route::post('customers/{customer}/profiles', [CustomerProfileController::class, 'store'])->name('customers.profiles.store');
     Route::get('customers/{customer}/payments/create', [CustomerPaymentController::class, 'create'])->name('customers.payments.create');
     Route::post('customers/{customer}/payments', [CustomerPaymentController::class, 'store'])->name('customers.payments.store');
     Route::get('customers/{customer}/wallet', [WalletController::class, 'show'])->name('customers.wallet.show');

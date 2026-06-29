@@ -52,8 +52,9 @@ class CustomerController extends Controller
 
         $customer = DB::transaction(function () use ($request) {
             $customer = Customer::query()->create($request->customerData());
+            $profile = $customer->profiles()->create($request->profileData());
 
-            $this->customerPackageService->createPackageAssignments($customer, $request->packageAssignments(), $request->user()?->id);
+            $this->customerPackageService->createPackageAssignments($profile, $request->packageAssignments(), $request->user()?->id);
 
             return $customer;
         });
@@ -72,6 +73,20 @@ class CustomerController extends Controller
             'customerPackages.groupEnrollments',
         ]);
 
+        $profileId = request('profile_id');
+        $profile = $profileId
+            ? $customer->profiles()->find($profileId)
+            : $customer->profiles()->first();
+
+        if ($profile) {
+            $customer->forceFill($profile->only([
+                'first_name', 'last_name',
+                'age', 'gender', 'entry_level_id', 'current_level_id', 'category_id',
+                'tester_id', 'placement_month', 'job', 'college', 'progress_report_link',
+                'test_date', 'agreed_package_id', 'agreed_amount', 'keywords', 'notes',
+            ]));
+        }
+
         return view('customers.edit', [
             'customer' => $customer,
             ...$this->formData(),
@@ -82,14 +97,34 @@ class CustomerController extends Controller
     {
         Gate::authorize('edit customers');
 
-        DB::transaction(function () use ($request, $customer) {
-            $customer->update($request->customerData());
+        $profileId = $request->query('profile_id') ?: $request->input('profile_id');
 
-            $this->customerPackageService->createPackageAssignments($customer, $request->packageAssignments(), $request->user()?->id);
+        DB::transaction(function () use ($request, $customer, $profileId) {
+            $customerData = $request->customerData();
+
+            // If updating a secondary profile, do not overwrite the customer's (parent's) first/last billing name.
+            $firstProfile = $customer->profiles()->first();
+            if ($profileId && $firstProfile && (int) $firstProfile->id !== (int) $profileId) {
+                unset($customerData['first_name'], $customerData['last_name']);
+            }
+
+            $customer->update($customerData);
+
+            $profile = $profileId
+                ? $customer->profiles()->find($profileId)
+                : $customer->profiles()->first();
+
+            if ($profile) {
+                $profile->update($request->profileData());
+            } else {
+                $profile = $customer->profiles()->create($request->profileData());
+            }
+
+            $this->customerPackageService->createPackageAssignments($profile, $request->packageAssignments(), $request->user()?->id);
         });
 
         return redirect()
-            ->route('customers.show', $customer)
+            ->route('customers.show', [$customer, 'profile_id' => $profileId])
             ->with('success', __('Customer updated successfully.'));
     }
 
@@ -97,23 +132,51 @@ class CustomerController extends Controller
     {
         Gate::authorize('view customers');
 
+        $profiles = $customer->profiles()->get();
+        $activeProfile = $profiles->firstWhere('id', request('profile_id')) ?? $profiles->first();
+
+        if ($activeProfile) {
+            $activeProfile->load([
+                'entryLevel',
+                'currentLevel',
+                'feedbacks.creator',
+                'feedbacks.level',
+                'category.parent',
+                'tester',
+                'customerPackages.package',
+                'customerPackages.discountTemplate',
+                'customerPackages.creator',
+                'customerPackages.payments',
+                'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
+                'groupEnrollments.group.instructor',
+                'groupEnrollments.group.level',
+                'groupEnrollments.customerPackage.package',
+            ]);
+
+            $customer->forceFill($activeProfile->only([
+                'first_name', 'last_name',
+                'age', 'gender', 'entry_level_id', 'current_level_id', 'category_id',
+                'tester_id', 'placement_month', 'job', 'college', 'progress_report_link',
+                'test_date', 'agreed_package_id', 'agreed_amount', 'keywords',
+            ]));
+
+            $customer->setRelation('entryLevel', $activeProfile->entryLevel);
+            $customer->setRelation('currentLevel', $activeProfile->currentLevel);
+            $customer->setRelation('category', $activeProfile->category);
+            $customer->setRelation('tester', $activeProfile->tester);
+            $customer->setRelation('agreedPackage', $activeProfile->agreedPackage);
+            $customer->setRelation('customerPackages', $activeProfile->customerPackages);
+            $customer->setRelation('groupEnrollments', $activeProfile->groupEnrollments);
+            $customer->setRelation('feedbacks', $activeProfile->feedbacks);
+        } else {
+            $customer->setRelation('customerPackages', collect());
+            $customer->setRelation('groupEnrollments', collect());
+            $customer->setRelation('feedbacks', collect());
+        }
+
         $customer->load([
-            'entryLevel',
-            'currentLevel',
-            'feedbacks.creator',
-            'feedbacks.level',
-            'category.parent',
             'country',
             'creator',
-            'tester',
-            'customerPackages.package',
-            'customerPackages.discountTemplate',
-            'customerPackages.creator',
-            'customerPackages.payments',
-            'groupEnrollments' => fn ($query) => $query->latest('joined_at')->latest(),
-            'groupEnrollments.group.instructor',
-            'groupEnrollments.group.level',
-            'groupEnrollments.customerPackage.package',
             'payments' => fn ($query) => $query->latest('paid_at')->latest(),
             'payments.creator',
             'payments.paymentMethod',
@@ -123,6 +186,8 @@ class CustomerController extends Controller
 
         return view('customers.show', [
             'customer' => $customer,
+            'profiles' => $profiles,
+            'activeProfile' => $activeProfile,
             'levels' => Level::query()->orderBy('name')->get(),
             'availablePackages' => Package::query()
                 ->where('status', 'active')
@@ -132,6 +197,8 @@ class CustomerController extends Controller
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
+            'users' => User::query()->orderBy('name')->get(),
+            'categories' => Category::query()->children()->with('parent')->orderBy('name')->get(),
         ]);
     }
 

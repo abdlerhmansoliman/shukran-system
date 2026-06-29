@@ -54,7 +54,7 @@ class CategoryController extends Controller
         });
 
         return redirect()
-            ->route('categories.edit', $category)
+            ->route('categories.index')
             ->with('success', __('Category created successfully.'));
     }
 
@@ -88,7 +88,7 @@ class CategoryController extends Controller
         $category->update($request->categoryData());
 
         return redirect()
-            ->route('categories.edit', $category)
+            ->route('categories.index')
             ->with('success', __('Category updated successfully.'));
     }
 
